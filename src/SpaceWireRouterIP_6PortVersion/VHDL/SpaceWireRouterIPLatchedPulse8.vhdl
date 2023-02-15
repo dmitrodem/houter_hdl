@@ -42,17 +42,6 @@ end SpaceWireRouterIPLatchedPulse8;
 
 architecture Behavioral of SpaceWireRouterIPLatchedPulse8 is
     
-    component SpaceWireRouterIPLatchedPulse is
-        port (
-            clock             : in  std_logic;
-            asynchronousClock : in  std_logic;
-            reset             : in  std_logic;
-            asynchronousIn    : in  std_logic;
-            latchedOut        : out std_logic;
-            latchClear        : in  std_logic
-            );
-    end component;
-    
 begin
 
 ----------------------------------------------------------------------
@@ -61,22 +50,22 @@ begin
 -- Status Register.
 ----------------------------------------------------------------------
 
-    latchedPulse00 : SpaceWireRouterIPLatchedPulse port map
+    latchedPulse00 : entity work.SpaceWireRouterIPLatchedPulse port map
         (clock      => clock, reset => reset, asynchronousIn => asynchronousIn (0), asynchronousClock => clock,
          latchedOut => latchedOut (0), latchClear => latchClear);
-    latchedPulse01 : SpaceWireRouterIPLatchedPulse port map
+    latchedPulse01 : entity work.SpaceWireRouterIPLatchedPulse port map
         (clock      => clock, reset => reset, asynchronousIn => asynchronousIn (1), asynchronousClock => transmitClock,
          latchedOut => latchedOut (1), latchClear => latchClear);
-    latchedPulse02 : SpaceWireRouterIPLatchedPulse port map
+    latchedPulse02 : entity work.SpaceWireRouterIPLatchedPulse port map
         (clock      => clock, reset => reset, asynchronousIn => asynchronousIn (2), asynchronousClock => receiveClock,
          latchedOut => latchedOut (2), latchClear => latchClear);
-    latchedPulse04 : SpaceWireRouterIPLatchedPulse port map
+    latchedPulse04 : entity work.SpaceWireRouterIPLatchedPulse port map
         (clock      => clock, reset => reset, asynchronousIn => asynchronousIn (4), asynchronousClock => receiveClock,
          latchedOut => latchedOut (4), latchClear => latchClear);
-    latchedPulse05 : SpaceWireRouterIPLatchedPulse port map
+    latchedPulse05 : entity work.SpaceWireRouterIPLatchedPulse port map
         (clock      => clock, reset => reset, asynchronousIn => asynchronousIn (5), asynchronousClock => receiveClock,
          latchedOut => latchedOut (5), latchClear => latchClear);
-    latchedPulse06 : SpaceWireRouterIPLatchedPulse port map
+    latchedPulse06 : entity work.SpaceWireRouterIPLatchedPulse port map
         (clock      => clock, reset => reset, asynchronousIn => asynchronousIn (6), asynchronousClock => receiveClock,
          latchedOut => latchedOut (6), latchClear => latchClear);
 

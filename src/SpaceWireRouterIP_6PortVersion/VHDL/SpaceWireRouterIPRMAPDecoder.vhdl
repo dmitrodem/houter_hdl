@@ -224,30 +224,6 @@ architecture behavioral of SpaceWireRouterIPRMAPDecoder is
     type   registerArray is array (0 to 11) of std_logic_vector (7 downto 0);
     signal iReplyAddress : registerArray;
 
-    component SpaceWireRouterIPTimeOutCount is
-        port (
-            clock             : in  std_logic;
-            reset             : in  std_logic;
-            timeOutEnable     : in  std_logic;
-            timeOutCountValue : in  std_logic_vector (19 downto 0);
-            clear             : in  std_logic;
-            timeOutOverFlow   : out std_logic;
-            timeOutEEP        : out std_logic
-            );
-    end component;
-
-    component SpaceWireRouterIPTimeOutEEP is
-        port (
-            clock             : in  std_logic;
-            reset             : in  std_logic;
-            timeOutEEP        : in  std_logic;
-            eepStrobe         : out std_logic;
-            eepData           : out std_logic_vector (8 downto 0);
-            transmitFIFOReady : in  std_logic;
-            eepWait           : out std_logic
-            );
-    end component;
-
     signal iwatchdogClear        : std_logic;
     signal watchdogTimeOut       : std_logic;
     signal watchdogEEPStrobe     : std_logic;
@@ -1459,7 +1435,7 @@ begin
     busMasterCycleOut       <= iBusMasterCycleOut;
     
     
-    watchdogTimerCount : SpaceWireRouterIPTimeOutCount port map (
+    watchdogTimerCount : entity work.SpaceWireRouterIPTimeOutCount port map (
         clock             => clock,
         reset             => reset,
         timeOutEnable     => timeOutEnable,
@@ -1469,7 +1445,7 @@ begin
         timeOutEEP        => timeOutEEPOut
         );
 
-    watchdogTimerTimeOutEEP : SpaceWireRouterIPTimeOutEEP port map (
+    watchdogTimerTimeOutEEP : entity work.SpaceWireRouterIPTimeOutEEP port map (
         clock             => clock,
         reset             => reset,
         timeOutEEP        => timeOutEEPIn,

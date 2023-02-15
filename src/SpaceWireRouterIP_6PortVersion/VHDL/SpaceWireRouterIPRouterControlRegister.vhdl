@@ -221,42 +221,6 @@ architecture behavioral of SpaceWireRouterIPRouterControlRegister is
     signal iAutoTimeCodeCycleTimeRegister              : std_logic_vector (31 downto 0);
     signal iStatisticalInformationReceiveClearRegister : std_logic;
 
-    component SpaceWireRouterIPLatchedPulse8 is
-        port (
-            clock          : in  std_logic;
-            transmitClock  : in  std_logic;
-            receiveClock   : in  std_logic;
-            reset          : in  std_logic;
-            asynchronousIn : in  std_logic_vector (7 downto 0);
-            latchedOut     : out std_logic_vector (7 downto 0);
-            latchClear     : in  std_logic
-            );
-    end component;
-
-    component SpaceWireRouterIPLongPulse is
-        port (
-            clock        : in  std_logic;
-            reset        : in  std_logic;
-            pulseIn      : in  std_logic;
-            longPulseOut : out std_logic
-            );
-    end component;
-
-
-    component SpaceWireRouterIPRouterRoutingTable32x256 is
-        port (
-            clock          : in  std_logic;
-            reset          : in  std_logic;
-            strobe         : in  std_logic;
-            writeEnable    : in  std_logic;
-            dataByteEnable : in  std_logic_vector (3 downto 0);
-            address        : in  std_logic_vector (7 downto 0);
-            writeData      : in  std_logic_vector (31 downto 0);
-            readData       : out std_logic_vector (31 downto 0);
-            acknowledge    : out std_logic
-            );
-    end component;
-
     signal iSelectRoutingTable     : std_logic;
     signal iRoutingTableStrobe     : std_logic;
     signal routingTableReadData    : std_logic_vector (31 downto 0);
@@ -319,7 +283,7 @@ begin
     timeOutEnable     <= iTimeOutEnableRegister;
     timeOutCountValue <= iTimeOutCountValueRegister;
     
-    errorStatus01 : SpaceWireRouterIPLatchedPulse8 port map (
+    errorStatus01 : entity work.SpaceWireRouterIPLatchedPulse8 port map (
         clock          => clock,
         transmitClock  => transmitClock,
         receiveClock   => receiveClock,
@@ -328,7 +292,7 @@ begin
         latchedOut     => errorStatusRegister1,
         latchClear     => iErrorStatusClear1
         );
-    errorStatus02 : SpaceWireRouterIPLatchedPulse8 port map (
+    errorStatus02 : entity work.SpaceWireRouterIPLatchedPulse8 port map (
         clock          => clock,
         transmitClock  => transmitClock,
         receiveClock   => receiveClock,
@@ -337,7 +301,7 @@ begin
         latchedOut     => errorStatusRegister2,
         latchClear     => iErrorStatusClear2
         );
-    errorStatus03 : SpaceWireRouterIPLatchedPulse8 port map (
+    errorStatus03 : entity work.SpaceWireRouterIPLatchedPulse8 port map (
         clock          => clock,
         transmitClock  => transmitClock,
         receiveClock   => receiveClock,
@@ -346,7 +310,7 @@ begin
         latchedOut     => errorStatusRegister3,
         latchClear     => iErrorStatusClear3
         );
-    errorStatus04 : SpaceWireRouterIPLatchedPulse8 port map (
+    errorStatus04 : entity work.SpaceWireRouterIPLatchedPulse8 port map (
         clock          => clock,
         transmitClock  => transmitClock,
         receiveClock   => receiveClock,
@@ -355,7 +319,7 @@ begin
         latchedOut     => errorStatusRegister4,
         latchClear     => iErrorStatusClear4
         );
-    errorStatus05 : SpaceWireRouterIPLatchedPulse8 port map (
+    errorStatus05 : entity work.SpaceWireRouterIPLatchedPulse8 port map (
         clock          => clock,
         transmitClock  => transmitClock,
         receiveClock   => receiveClock,
@@ -364,7 +328,7 @@ begin
         latchedOut     => errorStatusRegister5,
         latchClear     => iErrorStatusClear5
         );
-    errorStatus06 : SpaceWireRouterIPLatchedPulse8 port map (
+    errorStatus06 : entity work.SpaceWireRouterIPLatchedPulse8 port map (
         clock          => clock,
         transmitClock  => transmitClock,
         receiveClock   => receiveClock,
@@ -957,7 +921,7 @@ begin
 --------------------------------------------------------------------------------
 --  Routing Table.
 --------------------------------------------------------------------------------
-    routerRoutingTable : SpaceWireRouterIPRouterRoutingTable32x256
+    routerRoutingTable : entity work.SpaceWireRouterIPRouterRoutingTable32x256
         port map (
             clock          => clock,
             reset          => reset,
@@ -972,22 +936,22 @@ begin
 --------------------------------------------------------------------------------        
 -- longen link reset signal.
 --------------------------------------------------------------------------------
-    longPulse01 : SpaceWireRouterIPLongPulse port map (
+    longPulse01 : entity work.SpaceWireRouterIPLongPulse port map (
         clock => clock, reset => reset, pulseIn => iSoftWareLinkReset1, longPulseOut => linkReset1
         );
-    longPulse02 : SpaceWireRouterIPLongPulse port map (
+    longPulse02 : entity work.SpaceWireRouterIPLongPulse port map (
         clock => clock, reset => reset, pulseIn => iSoftWareLinkReset2, longPulseOut => linkReset2
         );
-    longPulse03 : SpaceWireRouterIPLongPulse port map (
+    longPulse03 : entity work.SpaceWireRouterIPLongPulse port map (
         clock => clock, reset => reset, pulseIn => iSoftWareLinkReset3, longPulseOut => linkReset3
         );
-    longPulse04 : SpaceWireRouterIPLongPulse port map (
+    longPulse04 : entity work.SpaceWireRouterIPLongPulse port map (
         clock => clock, reset => reset, pulseIn => iSoftWareLinkReset4, longPulseOut => linkReset4
         );
-    longPulse05 : SpaceWireRouterIPLongPulse port map (
+    longPulse05 : entity work.SpaceWireRouterIPLongPulse port map (
         clock => clock, reset => reset, pulseIn => iSoftWareLinkReset5, longPulseOut => linkReset5
         );
-    longPulse06 : SpaceWireRouterIPLongPulse port map (
+    longPulse06 : entity work.SpaceWireRouterIPLongPulse port map (
         clock => clock, reset => reset, pulseIn => iSoftWareLinkReset6, longPulseOut => linkReset6
         );
 
@@ -1000,52 +964,5 @@ begin
     port0RMAPKey              <= iPort0RMAPKeyRegister;
     port0TargetLogicalAddress <= iPort0TargetLogicalAddressRegister;
     port0CRCRevision          <= iPort0CRCRevisionRegister;
-    
-end behavioral;
-
-
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
-use IEEE.STD_LOGIC_ARITH.all;
-use IEEE.STD_LOGIC_UNSIGNED.all;
-
-entity SpaceWireRouterIPLongPulse is
-    port (
-        clock        : in  std_logic;
-        reset        : in  std_logic;
-        pulseIn      : in  std_logic;
-        longPulseOut : out std_logic
-        );
-end SpaceWireRouterIPLongPulse;
-
-architecture behavioral of SpaceWireRouterIPLongPulse is
-
-    signal iClockCount   : std_logic_vector (7 downto 0);
-    signal iLongPulseOut : std_logic;
-    
-begin
-
-----------------------------------------------------------------------
--- Convert synchronized One Shot Pulse into LongPulse.
-----------------------------------------------------------------------
-    process (clock, reset)
-    begin
-        if (reset = '1') then
-            iClockCount   <= (others => '0');
-            iLongPulseOut <= '0';
-        elsif (clock'event and clock = '1') then
-            if (pulseIn = '1') then
-                iLongPulseOut <= '1';
-            end if;
-            if (iClockCount = x"ff") then
-                iClockCount   <= (others => '0');
-                iLongPulseOut <= '0';
-            elsif (iLongPulseOut = '1') then
-                iClockCount <= iClockCount + 1;
-            end if;
-        end if;
-    end process;
-
-    longPulseOut <= iLongPulseOut;
     
 end behavioral;

@@ -75,47 +75,6 @@ end SpaceWireRouterIPRMAPPort;
 
 
 architecture behavioral of SpaceWireRouterIPRMAPPort is
-    
-    
-    component SpaceWireRouterIPRMAPDecoder is
-        port (
-            clock                   : in  std_logic;
-            reset                   : in  std_logic;
---
-            logicalAddress          : in  std_logic_vector (7 downto 0);
-            rmapKey                 : in  std_logic_vector (7 downto 0);
-            crcRevision             : in  std_logic;
---
-            linkUp                  : in  std_logic_vector (6 downto 0);
---
-            timeOutEnable           : in  std_logic;
-            timeOutCountValue       : in  std_logic_vector (19 downto 0);
-            timeOutEEPOut           : out std_logic;
-            timeOutEEPIn            : in  std_logic;
-            packetDropped           : out std_logic;
---
-            requestOut              : out std_logic;
-            grantedIn               : in  std_logic;
-            dataOut                 : out std_logic_vector (8 downto 0);
-            strobeOut               : out std_logic;
-            readyIn                 : in  std_logic;
---
-            strobeIn                : in  std_logic;
-            dataIn                  : in  std_logic_vector (8 downto 0);
-            readyOut                : out std_logic;
---
-            sourcePortIn            : in  std_logic_vector (7 downto 0);
-            destinationPortOut      : out std_logic_vector (7 downto 0);
---
-            busMasterAddressOut     : out std_logic_vector (31 downto 0);
-            busMasterByteEnableOut  : out std_logic_vector (3 downto 0);
-            busMasterDataIn         : in  std_logic_vector (31 downto 0);
-            busMasterDataOut        : out std_logic_vector (31 downto 0);
-            busMasterWriteEnableOut : out std_logic;
-            busMasterCycleOut       : out std_logic;
-            busMasterAcknowledgeIn  : in  std_logic
-            );
-    end component;
 
     signal iRMAPStrobeIn     : std_logic;
     signal busMasterCycleOut : std_logic;
@@ -125,7 +84,7 @@ begin
     
     iRMAPStrobeIn <= requestIn and strobeIn;
 
-    RMAPTargetDecoder : SpaceWireRouterIPRMAPDecoder
+    RMAPTargetDecoder : entity work.SpaceWireRouterIPRMAPDecoder
         port map (
             clock => clock,
             reset => reset,

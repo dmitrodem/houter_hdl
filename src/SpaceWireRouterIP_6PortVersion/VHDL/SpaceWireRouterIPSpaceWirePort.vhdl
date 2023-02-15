@@ -99,54 +99,6 @@ end SpaceWireRouterIPSpaceWirePort;
 
 architecture behavioral of SpaceWireRouterIPSpaceWirePort is
 
-    component SpaceWireCODECIP is
-
-        port (
-            -- Clock & Reset.
-            clock                       : in  std_logic;
-            transmitClock               : in  std_logic;
-            receiveClock                : in  std_logic;
-            reset                       : in  std_logic;
-            -- SpaceWire Buffer Status/Control.
-            transmitFIFOWriteEnable     : in  std_logic;
-            transmitFIFODataIn          : in  std_logic_vector (8 downto 0);
-            transmitFIFOFull            : out std_logic;
-            transmitFIFODataCount       : out std_logic_vector (5 downto 0);
-            receiveFIFOReadEnable       : in  std_logic;
-            receiveFIFODataOut          : out std_logic_vector (8 downto 0);
-            receiveFIFOFull             : out std_logic;
-            receiveFIFOEmpty            : out std_logic;
-            receiveFIFODataCount        : out std_logic_vector (5 downto 0);
-            -- TimeCode.
-            tickIn                      : in  std_logic;
-            timeIn                      : in  std_logic_vector (5 downto 0);
-            controlFlagsIn              : in  std_logic_vector (1 downto 0);
-            tickOut                     : out std_logic;
-            timeOut                     : out std_logic_vector (5 downto 0);
-            controlFlagsOut             : out std_logic_vector (1 downto 0);
-            -- Link Status/Control.
-            linkStart                   : in  std_logic;
-            linkDisable                 : in  std_logic;
-            autoStart                   : in  std_logic;
-            linkStatus                  : out std_logic_vector (15 downto 0);
-            errorStatus                 : out std_logic_vector (7 downto 0);
-            transmitClockDivideValue    : in  std_logic_vector (5 downto 0);
-            creditCount                 : out std_logic_vector (5 downto 0);
-            outstandingCount            : out std_logic_vector (5 downto 0);
-            -- LED.
-            transmitActivity            : out std_logic;
-            receiveActivity             : out std_logic;
-            -- SpaceWire Data-Strobe.
-            spaceWireDataOut            : out std_logic;
-            spaceWireStrobeOut          : out std_logic;
-            spaceWireDataIn             : in  std_logic;
-            spaceWireStrobeIn           : in  std_logic;
-            -- Statistics.
-            statisticalInformationClear : in  std_logic;
-            statisticalInformation      : out bit32X8Array
-            );
-    end component;
-
     signal spaceWireReset           : std_logic;
 --
     signal iTransmitFIFOWriteEnable : std_logic;
@@ -189,30 +141,6 @@ architecture behavioral of SpaceWireRouterIPSpaceWirePort is
     signal iRoutingTableAddress : std_logic_vector (7 downto 0);
     signal iRoutingTableRequest : std_logic;
 
-    component SpaceWireRouterIPTimeOutCount is
-        port (
-            clock             : in  std_logic;
-            reset             : in  std_logic;
-            timeOutEnable     : in  std_logic;
-            timeOutCountValue : in  std_logic_vector (19 downto 0);
-            clear             : in  std_logic;
-            timeOutOverFlow   : out std_logic;
-            timeOutEEP        : out std_logic
-            );
-    end component;
-
-    component SpaceWireRouterIPTimeOutEEP is
-        port (
-            clock             : in  std_logic;
-            reset             : in  std_logic;
-            timeOutEEP        : in  std_logic;
-            eepStrobe         : out std_logic;
-            eepData           : out std_logic_vector (8 downto 0);
-            transmitFIFOReady : in  std_logic;
-            eepWait           : out std_logic
-            );
-    end component;
-
     signal iWatchdogClear     : std_logic;
     signal watchdogTimeOut    : std_logic;
     signal watchdogEEPStrobe  : std_logic;
@@ -240,7 +168,7 @@ begin
         end if;
     end process;
 
-    SpaceWireCODEC : SpaceWireCODECIP
+    SpaceWireCODEC : entity work.SpaceWireCODECIP
         port map (
             -- Clock & Reset.
             clock                       => clock,
@@ -520,7 +448,7 @@ begin
     busMasterDataOut        <= (others => '0');
     
     
-    watchdogTimerCount : SpaceWireRouterIPTimeOutCount port map (
+    watchdogTimerCount : entity work.SpaceWireRouterIPTimeOutCount port map (
         clock             => clock,
         reset             => reset,
         timeOutEnable     => timeOutEnable,
@@ -530,7 +458,7 @@ begin
         timeOutEEP        => timeOutEEPOut
         );
 
-    watchdogTimerTimeOutEEP : SpaceWireRouterIPTimeOutEEP port map (
+    watchdogTimerTimeOutEEP : entity work.SpaceWireRouterIPTimeOutEEP port map (
         clock             => clock,
         reset             => reset,
         timeOutEEP        => timeOutEEPIn,

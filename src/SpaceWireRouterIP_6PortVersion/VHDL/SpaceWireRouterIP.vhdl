@@ -42,6 +42,14 @@ entity SpaceWireRouterIP is
         receiveClock                : in  std_logic;
         reset                       : in  std_logic;
         -- SpaceWire Signals.
+        -- [[[cog
+        -- for i in range(1, int(nports)+1):
+        --   print(f"-- Port{i}.")
+        --   print(f"spaceWireDataIn{i}            : in  std_logic;")
+        --   print(f"spaceWireStrobeIn{i}          : in  std_logic;")
+        --   print(f"spaceWireDataOut{i}           : out std_logic;")
+        --   print(f"spaceWireStrobeOut{i}         : out std_logic;")
+        -- ]]]
         -- Port1.
         spaceWireDataIn1            : in  std_logic;
         spaceWireStrobeIn1          : in  std_logic;
@@ -72,20 +80,31 @@ entity SpaceWireRouterIP is
         spaceWireStrobeIn6          : in  std_logic;
         spaceWireDataOut6           : out std_logic;
         spaceWireStrobeOut6         : out std_logic;
+        -- [[[end]]]
         --
+        -- [[[cog
+        -- for i in range(1, int(nports)+1):
+        --   print(f"statisticalInformationPort{i} : out bit32X8Array;")
+        -- ]]]
         statisticalInformationPort1 : out bit32X8Array;
         statisticalInformationPort2 : out bit32X8Array;
         statisticalInformationPort3 : out bit32X8Array;
         statisticalInformationPort4 : out bit32X8Array;
         statisticalInformationPort5 : out bit32X8Array;
         statisticalInformationPort6 : out bit32X8Array;
+        -- [[[end]]]
         --
+        -- [[[cog
+        -- for i in range(1, int(nports)+1):
+        --   print(f"oneShotStatusPort{i}          : out std_logic_vector(7 downto 0);")
+        -- ]]]
         oneShotStatusPort1          : out std_logic_vector(7 downto 0);
         oneShotStatusPort2          : out std_logic_vector(7 downto 0);
         oneShotStatusPort3          : out std_logic_vector(7 downto 0);
         oneShotStatusPort4          : out std_logic_vector(7 downto 0);
         oneShotStatusPort5          : out std_logic_vector(7 downto 0);
         oneShotStatusPort6          : out std_logic_vector(7 downto 0);
+        -- [[[end]]]
 
         busMasterUserAddressIn      : in  std_logic_vector (31 downto 0);
         busMasterUserDataOut        : out std_logic_vector (31 downto 0);
@@ -101,172 +120,15 @@ end SpaceWireRouterIP;
 
 architecture behavioral of SpaceWireRouterIP is
 
---------------------------------------------------------------------------------
--- SpaceWire Physical Port.
---------------------------------------------------------------------------------
-    component SpaceWireRouterIPSpaceWirePort is
-        generic (
-            gNumberOfInternalPort : std_logic_vector (7 downto 0);
-            gNumberOfExternalPort : std_logic_vector (4 downto 0)
-            );
-        port (
-            -- Clock & Reset.
-            clock                       : in  std_logic;
-            transmitClock               : in  std_logic;
-            receiveClock                : in  std_logic;
-            reset                       : in  std_logic;
-            -- switch info.
-            linkUp                      : in  std_logic_vector (6 downto 0);
-            timeOutEnable               : in  std_logic;
-            timeOutCountValue           : in  std_logic_vector (19 downto 0);
-            timeOutEEPOut               : out std_logic;
-            timeOutEEPIn                : in  std_logic;
-            packetDropped               : out std_logic;
-            -- switch out port.
-            requestOut                  : out std_logic;
-            destinationPortOut          : out std_logic_vector (7 downto 0);
-            sourcePorOut                : out std_logic_vector (7 downto 0);
-            grantedIn                   : in  std_logic;
-            dataOut                     : out std_logic_vector (8 downto 0);
-            strobeOut                   : out std_logic;
-            readyIn                     : in  std_logic;
-            -- switch in port.
-            requestIn                   : in  std_logic;
-            dataIn                      : in  std_logic_vector (8 downto 0);
-            strobeIn                    : in  std_logic;
-            readyOut                    : out std_logic;
-            -- routing table read i/f. 
-            busMasterAddressOut         : out std_logic_vector (31 downto 0);
-            busMasterDataIn             : in  std_logic_vector (31 downto 0);
-            busMasterDataOut            : out std_logic_vector (31 downto 0);
-            busMasterWriteEnableOut     : out std_logic;
-            busMasterByteEnableOut      : out std_logic_vector (3 downto 0);
-            busMasterStrobeOut          : out std_logic;
-            busMasterRequestOut         : out std_logic;
-            busMasterAcknowledgeIn      : in  std_logic;
-            -- SpaceWire timecode.
-            tickIn                      : in  std_logic;
-            timeCodeIn                  : in  std_logic_vector (7 downto 0);
-            tickOut                     : out std_logic;
-            timeCodeOut                 : out std_logic_vector (7 downto 0);
-            -- SpaceWire link status/control.
-            linkStart                   : in  std_logic;
-            linkDisable                 : in  std_logic;
-            autoStart                   : in  std_logic;
-            linkReset                   : in  std_logic;
-            linkStatus                  : out std_logic_vector (15 downto 0);
-            errorStatus                 : out std_logic_vector (7 downto 0);
-            transmitClockDivide         : in  std_logic_vector (5 downto 0);
-            creditCount                 : out std_logic_vector (5 downto 0);
-            outstandingCount            : out std_logic_vector (5 downto 0);
-            -- SpaceWire Data-Strobe.
-            spaceWireDataOut            : out std_logic;
-            spaceWireStrobeOut          : out std_logic;
-            spaceWireDataIn             : in  std_logic;
-            spaceWireStrobeIn           : in  std_logic;
-            -- Statistics.
-            statisticalInformationClear : in  std_logic;
-            statisticalInformation      : out bit32X8Array
-            );
-    end component;
-
-
---------------------------------------------------------------------------------
--- Internal Configuration Port.
---------------------------------------------------------------------------------
-    component SpaceWireRouterIPRMAPPort is
-        generic (
-            gPortNumber           : std_logic_vector (7 downto 0);
-            gNumberOfExternalPort : std_logic_vector (4 downto 0)
-            );
-        port (
-            clock                   : in  std_logic;
-            reset                   : in  std_logic;
-            linkUp                  : in  std_logic_vector (6 downto 0);
---
-            timeOutEnable           : in  std_logic;
-            timeOutCountValue       : in  std_logic_vector (19 downto 0);
-            timeOutEEPOut           : out std_logic;
-            timeOutEEPIn            : in  std_logic;
-            packetDropped           : out std_logic;
---
-            PortRequest             : out std_logic;
-            destinationPortOut      : out std_logic_vector (7 downto 0);
-            sorcePortOut            : out std_logic_vector (7 downto 0);
-            grantedIn               : in  std_logic;
-            dataOut                 : out std_logic_vector (8 downto 0);
-            strobeOut               : out std_logic;
-            readyIn                 : in  std_logic;
---
-            requestIn               : in  std_logic;
-            sourcePortIn            : in  std_logic_vector (7 downto 0);
-            dataIn                  : in  std_logic_vector (8 downto 0);
-            strobeIn                : in  std_logic;
-            readyOut                : out std_logic;
---
-            logicalAddress          : in  std_logic_vector (7 downto 0);
-            rmapKey                 : in  std_logic_vector (7 downto 0);
-            crcRevision             : in  std_logic;
---
-            busMasterOriginalPort   : out std_logic_vector (7 downto 0);
-            busMasterAddressOut     : out std_logic_vector (31 downto 0);
-            busMasterDataIn         : in  std_logic_vector (31 downto 0);
-            busMasterDataOut        : out std_logic_vector (31 downto 0);
-            busMasterWriteEnableOut : out std_logic;
-            busMasterByteEnableOut  : out std_logic_vector (3 downto 0);
-            busMasterStrobeOut      : out std_logic;
-            busMasterRequestOut     : out std_logic;
-            busMasterAcknowledgeIn  : in  std_logic
-            );
-    end component;
-
---------------------------------------------------------------------------------
---
---------------------------------------------------------------------------------
-    component SpaceWireRouterIPStatisticsCounter7 is
-        port (
-            clock                 : in  std_logic;
-            reset                 : in  std_logic;
-            allCounterClear       : in  std_logic;
---
-            watchdogTimeOut0      : in  std_logic;
-            packetDropped0        : in  std_logic;
-            watchdogTimeOutCount0 : out std_logic_vector (15 downto 0);
-            dropCount0            : out std_logic_vector (15 downto 0);
---
-            watchdogTimeOut1      : in  std_logic;
-            packetDropped1        : in  std_logic;
-            watchdogTimeOutCount1 : out std_logic_vector (15 downto 0);
-            dropCount1            : out std_logic_vector (15 downto 0);
---
-            watchdogTimeOut2      : in  std_logic;
-            packetDropped2        : in  std_logic;
-            watchdogTimeOutCount2 : out std_logic_vector (15 downto 0);
-            dropCount2            : out std_logic_vector (15 downto 0);
---
-            watchdogTimeOut3      : in  std_logic;
-            packetDropped3        : in  std_logic;
-            watchdogTimeOutCount3 : out std_logic_vector (15 downto 0);
-            dropCount3            : out std_logic_vector (15 downto 0);
---
-            watchdogTimeOut4      : in  std_logic;
-            packetDropped4        : in  std_logic;
-            watchdogTimeOutCount4 : out std_logic_vector (15 downto 0);
-            dropCount4            : out std_logic_vector (15 downto 0);
---
-            watchdogTimeOut5      : in  std_logic;
-            packetDropped5        : in  std_logic;
-            watchdogTimeOutCount5 : out std_logic_vector (15 downto 0);
-            dropCount5            : out std_logic_vector (15 downto 0);
----
-            watchdogTimeOut6      : in  std_logic;
-            packetDropped6        : in  std_logic;
-            watchdogTimeOutCount6 : out std_logic_vector (15 downto 0);
-            dropCount6            : out std_logic_vector (15 downto 0)
-            );
-    end component;
-
-
+    -- [[[cog
+    -- a = []; b = []; c = []
+    -- for i in range(0, int(nports)+1):
+    --   a.append(f"signal packetDropped{i}   : std_logic;")
+    --   b.append(f"signal timeOutCount{i}    : std_logic_vector (15 downto 0);")
+    --   c.append(f"signal packetDropCount{i} : std_logic_vector (15 downto 0);")
+    -- msg = "\n".join(a + b + c)
+    -- print(msg)
+    -- ]]]
     signal packetDropped0   : std_logic;
     signal packetDropped1   : std_logic;
     signal packetDropped2   : std_logic;
@@ -288,56 +150,7 @@ architecture behavioral of SpaceWireRouterIP is
     signal packetDropCount4 : std_logic_vector (15 downto 0);
     signal packetDropCount5 : std_logic_vector (15 downto 0);
     signal packetDropCount6 : std_logic_vector (15 downto 0);
-
-
-
---------------------------------------------------------------------------------
--- Synchronized CreditCount/OutstandingCount.
---------------------------------------------------------------------------------
-    component SpaceWireRouterIPCreditCount is
-        port (
-            clock                       : in  std_logic;
-            transmitClock               : in  std_logic;
-            reset                       : in  std_logic;
-            creditCount                 : in  std_logic_vector (5 downto 0);
-            outstndingCount             : in  std_logic_vector (5 downto 0);
-            creditCountSynchronized     : out std_logic_vector (5 downto 0);
-            outstndingCountSynchronized : out std_logic_vector (5 downto 0)
-            );
-    end component;
-
-
---------------------------------------------------------------------------------
--- Crossbar Switch.
---------------------------------------------------------------------------------
-    component SpaceWireRouterIPArbiter7x7 is
-        port (
-            clock              : in  std_logic;
-            reset              : in  std_logic;
-            destinationOfPort0 : in  std_logic_vector (7 downto 0);
-            destinationOfPort1 : in  std_logic_vector (7 downto 0);
-            destinationOfPort2 : in  std_logic_vector (7 downto 0);
-            destinationOfPort3 : in  std_logic_vector (7 downto 0);
-            destinationOfPort4 : in  std_logic_vector (7 downto 0);
-            destinationOfPort5 : in  std_logic_vector (7 downto 0);
-            destinationOfPort6 : in  std_logic_vector (7 downto 0);
-            requestOfPort0     : in  std_logic;
-            requestOfPort1     : in  std_logic;
-            requestOfPort2     : in  std_logic;
-            requestOfPort3     : in  std_logic;
-            requestOfPort4     : in  std_logic;
-            requestOfPort5     : in  std_logic;
-            requestOfPort6     : in  std_logic;
-            grantedToPort0     : out std_logic;
-            grantedToPort1     : out std_logic;
-            grantedToPort2     : out std_logic;
-            grantedToPort3     : out std_logic;
-            grantedToPort4     : out std_logic;
-            grantedToPort5     : out std_logic;
-            grantedToPort6     : out std_logic;
-            routingSwitch      : out std_logic_vector (48 downto 0)
-            );
-    end component;
+    -- [[[end]]]
 
     type portXPortArray is array (gNumberOfInternalPort - 1 downto 0) of std_logic_vector (gNumberOfInternalPort - 1 downto 0);
     type bit8XPortArray is array (gNumberOfInternalPort - 1 downto 0) of std_logic_vector (7 downto 0);
@@ -367,6 +180,13 @@ architecture behavioral of SpaceWireRouterIP is
     signal routerTimeCode                    : std_logic_vector (7 downto 0);
     signal transmitTimeCodeEnable            : std_logic_vector (6 downto 0);
 --
+    -- [[[cog
+    -- for i in range(1, int(nports)+1):
+    --   print(f"signal port{i}TickIn                       : std_logic;")
+    --   print(f"signal port{i}TiemCodeIn                   : std_logic_vector (7 downto 0);")
+    --   print(f"signal port{i}TickOut                      : std_logic;")
+    --   print(f"signal port{i}TimeCodeOut                  : std_logic_vector (7 downto 0);")
+    -- ]]]
     signal port1TickIn                       : std_logic;
     signal port1TiemCodeIn                   : std_logic_vector (7 downto 0);
     signal port1TickOut                      : std_logic;
@@ -391,7 +211,22 @@ architecture behavioral of SpaceWireRouterIP is
     signal port6TiemCodeIn                   : std_logic_vector (7 downto 0);
     signal port6TickOut                      : std_logic;
     signal port6TimeCodeOut                  : std_logic_vector (7 downto 0);
+    -- [[[end]]]
 --
+    -- [[[cog
+    -- a = []; b = []; c = [];
+    -- for i in range(1, int(nports)+1):
+    --   a.append(f"signal port{i}LinkReset                    : std_logic;")
+    --   a.append(f"signal port{i}LinkStatus                   : std_logic_vector (15 downto 0);")
+    --   a.append(f"signal port{i}ErrorStatus                  : std_logic_vector (7 downto 0);")
+    --   b.append(f"signal port{i}LinkControl                  : std_logic_vector (15 downto 0);")
+    --   c.append(f"signal port{i}CreditCount                  : std_logic_vector (5 downto 0);")
+    --   c.append(f"signal port{i}OutstandingCount             : std_logic_vector (5 downto 0);")
+    --   c.append(f"signal port{i}CreditCountSynchronized      : std_logic_vector (5 downto 0);")
+    --   c.append(f"signal port{i}OutstandingCountSynchronized : std_logic_vector (5 downto 0);")
+    -- msg = "\n".join(a + b + c)
+    -- print(msg)
+    -- ]]]
     signal port1LinkReset                    : std_logic;
     signal port1LinkStatus                   : std_logic_vector (15 downto 0);
     signal port1ErrorStatus                  : std_logic_vector (7 downto 0);
@@ -416,7 +251,6 @@ architecture behavioral of SpaceWireRouterIP is
     signal port4LinkControl                  : std_logic_vector (15 downto 0);
     signal port5LinkControl                  : std_logic_vector (15 downto 0);
     signal port6LinkControl                  : std_logic_vector (15 downto 0);
---
     signal port1CreditCount                  : std_logic_vector (5 downto 0);
     signal port1OutstandingCount             : std_logic_vector (5 downto 0);
     signal port1CreditCountSynchronized      : std_logic_vector (5 downto 0);
@@ -441,6 +275,7 @@ architecture behavioral of SpaceWireRouterIP is
     signal port6OutstandingCount             : std_logic_vector (5 downto 0);
     signal port6CreditCountSynchronized      : std_logic_vector (5 downto 0);
     signal port6OutstandingCountSynchronized : std_logic_vector (5 downto 0);
+    -- [[[end]]]
 --
     signal timeOutEnable                     : std_logic;
     signal timeOutCountValue                 : std_logic_vector (19 downto 0);
@@ -474,7 +309,7 @@ architecture behavioral of SpaceWireRouterIP is
 --
     signal autoTimeCodeValue                 : std_logic_vector(7 downto 0);
     signal autoTimeCodeCycleTime             : std_logic_vector(31 downto 0);
---  
+--
     signal statisticalInformation1           : bit32X8Array;
     signal statisticalInformation2           : bit32X8Array;
     signal statisticalInformation3           : bit32X8Array;
@@ -488,177 +323,10 @@ architecture behavioral of SpaceWireRouterIP is
 --
     signal ibusMasterDataOut                 : std_logic_vector (31 downto 0);
 
---------------------------------------------------------------------------------
--- Router Link Control, Status Registers and Routing Table.
---------------------------------------------------------------------------------
-    component SpaceWireRouterIPRouterControlRegister is
-        port (
-            -- Clock & Reset
-            clock                       : in  std_logic;
-            reset                       : in  std_logic;
-            transmitClock               : in  std_logic;
-            receiveClock                : in  std_logic;
-            -- Bus i/f
-            writeData                   : in  std_logic_vector (31 downto 0);
-            readData                    : out std_logic_vector (31 downto 0);
-            acknowledge                 : out std_logic;
-            address                     : in  std_logic_vector (31 downto 0);
-            strobe                      : in  std_logic;
-            cycle                       : in  std_logic;
-            writeEnable                 : in  std_logic;
-            dataByteEnable              : in  std_logic_vector (3 downto 0);
-            requestPort                 : in  std_logic_vector (7 downto 0);
-            -- switch info
-            linkUp                      : in  std_logic_vector (6 downto 0);
-            -- Link Status/Control
-            linkControl1                : out std_logic_vector (15 downto 0);
-            linkStatus1                 : in  std_logic_vector (7 downto 0);
-            errorStatus1                : in  std_logic_vector (7 downto 0);
-            linkReset1                  : out std_logic;
---
-            linkControl2                : out std_logic_vector (15 downto 0);
-            linkStatus2                 : in  std_logic_vector (7 downto 0);
-            errorStatus2                : in  std_logic_vector (7 downto 0);
-            linkReset2                  : out std_logic;
---
-            linkControl3                : out std_logic_vector (15 downto 0);
-            linkStatus3                 : in  std_logic_vector (7 downto 0);
-            errorStatus3                : in  std_logic_vector (7 downto 0);
-            linkReset3                  : out std_logic;
---
-            linkControl4                : out std_logic_vector (15 downto 0);
-            linkStatus4                 : in  std_logic_vector (7 downto 0);
-            errorStatus4                : in  std_logic_vector (7 downto 0);
-            linkReset4                  : out std_logic;
---
-            linkControl5                : out std_logic_vector (15 downto 0);
-            linkStatus5                 : in  std_logic_vector (7 downto 0);
-            errorStatus5                : in  std_logic_vector (7 downto 0);
-            linkReset5                  : out std_logic;
---
-            linkControl6                : out std_logic_vector (15 downto 0);
-            linkStatus6                 : in  std_logic_vector (7 downto 0);
-            errorStatus6                : in  std_logic_vector (7 downto 0);
-            linkReset6                  : out std_logic;
---
-            creditCount1                : in  std_logic_vector (5 downto 0);
-            creditCount2                : in  std_logic_vector (5 downto 0);
-            creditCount3                : in  std_logic_vector (5 downto 0);
-            creditCount4                : in  std_logic_vector (5 downto 0);
-            creditCount5                : in  std_logic_vector (5 downto 0);
-            creditCount6                : in  std_logic_vector (5 downto 0);
-            outstandingCount1           : in  std_logic_vector (5 downto 0);
-            outstandingCount2           : in  std_logic_vector (5 downto 0);
-            outstandingCount3           : in  std_logic_vector (5 downto 0);
-            outstandingCount4           : in  std_logic_vector (5 downto 0);
-            outstandingCount5           : in  std_logic_vector (5 downto 0);
-            outstandingCount6           : in  std_logic_vector (5 downto 0);
-            timeOutCount0               : in  std_logic_vector (15 downto 0);
-            timeOutCount1               : in  std_logic_vector (15 downto 0);
-            timeOutCount2               : in  std_logic_vector (15 downto 0);
-            timeOutCount3               : in  std_logic_vector (15 downto 0);
-            timeOutCount4               : in  std_logic_vector (15 downto 0);
-            timeOutCount5               : in  std_logic_vector (15 downto 0);
-            timeOutCount6               : in  std_logic_vector (15 downto 0);
---
-            dropCount0                  : in  std_logic_vector (15 downto 0);
-            dropCount1                  : in  std_logic_vector (15 downto 0);
-            dropCount2                  : in  std_logic_vector (15 downto 0);
-            dropCount3                  : in  std_logic_vector (15 downto 0);
-            dropCount4                  : in  std_logic_vector (15 downto 0);
-            dropCount5                  : in  std_logic_vector (15 downto 0);
-            dropCount6                  : in  std_logic_vector (15 downto 0);
-            dropCouterClear             : out std_logic;
---
-            timeOutEnable               : out std_logic;
-            timeOutCountValue           : out std_logic_vector (19 downto 0);
---
-            receiveTimeCode             : in  std_logic_vector (7 downto 0);
-            transmitTimeCodeEnable      : out std_logic_vector (6 downto 0);
---
-            port0TargetLogicalAddress   : out std_logic_vector (7 downto 0);
-            port0RMAPKey                : out std_logic_vector (7 downto 0);
-            port0CRCRevision            : out std_logic;
---
-            autoTimeCodeValue           : in  std_logic_vector(7 downto 0);
-            autoTimeCodeCycleTime       : out std_logic_vector(31 downto 0);
---            
-            statisticalInformation1     : in  bit32X8Array;
-            statisticalInformation2     : in  bit32X8Array;
-            statisticalInformation3     : in  bit32X8Array;
-            statisticalInformation4     : in  bit32X8Array;
-            statisticalInformation5     : in  bit32X8Array;
-            statisticalInformation6     : in  bit32X8Array;
-            statisticalInformationClear : out std_logic
-            );
-    end component;
-
-
---------------------------------------------------------------------------------
--- Bus arbiter.
---------------------------------------------------------------------------------
-
-    component SpaceWireRouterIPTableArbiter7 is
-        port (
-            clock   : in  std_logic;
-            reset   : in  std_logic;
-            request : in  std_logic_vector (7 downto 0);
-            granted : out std_logic_vector (7 downto 0)
-            );
-    end component;
-
     signal iLinkUp : std_logic_vector (6 downto 0);
 
---------------------------------------------------------------------------------
--- Forwarding TimeCode logic.
---------------------------------------------------------------------------------
-
-    component SpaceWireRouterIPTimeCodeControl6 is
-        port (
-            clock                 : in  std_logic;
-            reset                 : in  std_logic;
-            -- switch info.
-            linkUp                : in  std_logic_vector (6 downto 0);
-            receiveTimeCode       : out std_logic_vector (7 downto 0);
-            -- spacewire timecode.
-            port1TimeCodeEnable   : in  std_logic;
-            port1TickIn           : out std_logic;
-            port1TimeCodeIn       : out std_logic_vector (7 downto 0);
-            port1TickOut          : in  std_logic;
-            port1TimeCodeOut      : in  std_logic_vector (7 downto 0);
-            port2TimeCodeEnable   : in  std_logic;
-            port2TickIn           : out std_logic;
-            port2TimeCodeIn       : out std_logic_vector (7 downto 0);
-            port2TickOut          : in  std_logic;
-            port2TimeCodeOut      : in  std_logic_vector (7 downto 0);
-            port3TimeCodeEnable   : in  std_logic;
-            port3TickIn           : out std_logic;
-            port3TimeCodeIn       : out std_logic_vector (7 downto 0);
-            port3TickOut          : in  std_logic;
-            port3TimeCodeOut      : in  std_logic_vector (7 downto 0);
-            port4TimeCodeEnable   : in  std_logic;
-            port4TickIn           : out std_logic;
-            port4TimeCodeIn       : out std_logic_vector (7 downto 0);
-            port4TickOut          : in  std_logic;
-            port4TimeCodeOut      : in  std_logic_vector (7 downto 0);
-            port5TimeCodeEnable   : in  std_logic;
-            port5TickIn           : out std_logic;
-            port5TimeCodeIn       : out std_logic_vector (7 downto 0);
-            port5TickOut          : in  std_logic;
-            port5TimeCodeOut      : in  std_logic_vector (7 downto 0);
-            port6TimeCodeEnable   : in  std_logic;
-            port6TickIn           : out std_logic;
-            port6TimeCodeIn       : out std_logic_vector (7 downto 0);
-            port6TickOut          : in  std_logic;
-            port6TimeCodeOut      : in  std_logic_vector (7 downto 0);
---
-            autoTimeCodeValue     : out std_logic_vector(7 downto 0);
-            autoTimeCodeCycleTime : in  std_logic_vector(31 downto 0)
-            );
-    end component;
-
 begin
-    
+
     oneShotStatusPort1 <= port1LinkStatus (15 downto 8);
     oneShotStatusPort2 <= port2LinkStatus (15 downto 8);
     oneShotStatusPort3 <= port3LinkStatus (15 downto 8);
@@ -669,10 +337,19 @@ begin
 --------------------------------------------------------------------------------
 -- Crossbar Switch.
 --------------------------------------------------------------------------------
-    arbiter : SpaceWireRouterIPArbiter7x7
+    arbiter : entity work.SpaceWireRouterIPArbiter7x7
         port map (
             clock              => clock,
             reset              => reset,
+            -- [[[cog
+            -- a = []; b = []; c = []
+            -- for i in range(0, int(nports) + 1):
+            --   a.append(f"destinationOfPort{i} => destinationPort ({i})")
+            --   b.append(f"requestOfPort{i}     => requestOut ({i})")
+            --   c.append(f"grantedToPort{i}     => granted ({i})")
+            -- msg = ",\n".join(a + b + c)
+            -- print(f"{msg},")
+            -- ]]]
             destinationOfPort0 => destinationPort (0),
             destinationOfPort1 => destinationPort (1),
             destinationOfPort2 => destinationPort (2),
@@ -694,12 +371,21 @@ begin
             grantedToPort4     => granted (4),
             grantedToPort5     => granted (5),
             grantedToPort6     => granted (6),
+            -- [[[end]]]
             routingSwitch      => routingSwitch
             );
 
 ----------------------------------------------------------------------
 -- The destination PortNo regarding the source PortNo.
 ----------------------------------------------------------------------
+    -- [[[cog
+    -- n = int(nports) + 1
+    -- for i in range(0, int(nports) + 1):
+    --   a = []
+    --   for j in range(0, int(nports) + 1):
+    --     a.append(f"routingSwitch ({n*j + i})")
+    --   print(f"iSelectDestinationPort ({i}) <= {' & '.join(a[::-1])};")
+    -- ]]]
     iSelectDestinationPort (0) <= routingSwitch (42) & routingSwitch (35) & routingSwitch (28) & routingSwitch (21) & routingSwitch (14) & routingSwitch (7) & routingSwitch (0);
     iSelectDestinationPort (1) <= routingSwitch (43) & routingSwitch (36) & routingSwitch (29) & routingSwitch (22) & routingSwitch (15) & routingSwitch (8) & routingSwitch (1);
     iSelectDestinationPort (2) <= routingSwitch (44) & routingSwitch (37) & routingSwitch (30) & routingSwitch (23) & routingSwitch (16) & routingSwitch (9) & routingSwitch (2);
@@ -707,10 +393,16 @@ begin
     iSelectDestinationPort (4) <= routingSwitch (46) & routingSwitch (39) & routingSwitch (32) & routingSwitch (25) & routingSwitch (18) & routingSwitch (11) & routingSwitch (4);
     iSelectDestinationPort (5) <= routingSwitch (47) & routingSwitch (40) & routingSwitch (33) & routingSwitch (26) & routingSwitch (19) & routingSwitch (12) & routingSwitch (5);
     iSelectDestinationPort (6) <= routingSwitch (48) & routingSwitch (41) & routingSwitch (34) & routingSwitch (27) & routingSwitch (20) & routingSwitch (13) & routingSwitch (6);
+    -- [[[end]]]
 
 ----------------------------------------------------------------------
 -- The source to the destination PortNo PortNo.
 ----------------------------------------------------------------------
+    -- [[[cog
+    -- n = int(nports) + 1
+    -- for i in range(0, int(nports) + 1):
+    --   print(f"iSwitchPortNumber ({i}) <= routingSwitch ({(n-1) + n*i} downto {n*i});")
+    -- ]]]
     iSwitchPortNumber (0) <= routingSwitch (6 downto 0);
     iSwitchPortNumber (1) <= routingSwitch (13 downto 7);
     iSwitchPortNumber (2) <= routingSwitch (20 downto 14);
@@ -718,21 +410,88 @@ begin
     iSwitchPortNumber (4) <= routingSwitch (34 downto 28);
     iSwitchPortNumber (5) <= routingSwitch (41 downto 35);
     iSwitchPortNumber (6) <= routingSwitch (48 downto 42);
+    -- [[[end]]]
 
     spx : for i in 0 to gNumberOfInternalPort - 1 generate
     begin
-        iReadyIn (i) <= select7x1(iSelectDestinationPort (i), readyOut (0), readyOut (1), readyOut (2),
-                                  readyOut (3), readyOut (4), readyOut (5), readyOut (6));
-        iRequestIn (i) <= select7x1(iSwitchPortNumber (i), requestOut (0), requestOut (1), requestOut (2),
-                                    requestOut (3), requestOut (4), requestOut (5), requestOut (6));
-        iSorcePortIn (i) <= select7x1xVector8(iSwitchPortNumber (i), sorcePortrOut (0), sorcePortrOut (1), sorcePortrOut (2),
-                                              sorcePortrOut (3), sorcePortrOut (4), sorcePortrOut (5), sorcePortrOut (6));
-        iDataIn (i) <= select7x1xVector9(iSwitchPortNumber (i), dataOut (0), dataOut (1), dataOut (2), dataOut (3),
-                                         dataOut (4), dataOut (5), dataOut (6));
-        iStrobeIn (i) <= select7x1(iSwitchPortNumber (i), strobeOut (0), strobeOut (1), strobeOut (2),
-                                   strobeOut (3), strobeOut (4), strobeOut (5), strobeOut (6));
-        iTimeOutEEPIn (i) <= select7x1(iSwitchPortNumber (i), timeOutEEPOut (0), timeOutEEPOut (1), timeOutEEPOut (2),
-                                       timeOutEEPOut (3), timeOutEEPOut (4), timeOutEEPOut (5), timeOutEEPOut (6));
+        iReadyIn (i) <= select7x1(iSelectDestinationPort (i),
+                                  -- [[[cog
+                                  -- a = ",\n".join([f"readyOut ({i})" for i in range(0, int(nports)+1)])
+                                  -- print(f"{a});")
+                                  -- ]]]
+                                  readyOut (0),
+                                  readyOut (1),
+                                  readyOut (2),
+                                  readyOut (3),
+                                  readyOut (4),
+                                  readyOut (5),
+                                  readyOut (6));
+                                  -- [[[end]]]
+        iRequestIn (i) <= select7x1(iSwitchPortNumber (i),
+                                    -- [[[cog
+                                    -- a = ",\n".join([f"requestOut ({i})" for i in range(0, int(nports)+1)])
+                                    -- print(f"{a});")
+                                    -- ]]]
+                                    requestOut (0),
+                                    requestOut (1),
+                                    requestOut (2),
+                                    requestOut (3),
+                                    requestOut (4),
+                                    requestOut (5),
+                                    requestOut (6));
+                                    -- [[[end]]]
+        iSorcePortIn (i) <= select7x1xVector8(iSwitchPortNumber (i),
+                                              -- [[[cog
+                                              -- a = ",\n".join([f"sorcePortrOut ({i})" for i in range(0, int(nports)+1)])
+                                              -- print(f"{a});")
+                                              -- ]]]
+                                              sorcePortrOut (0),
+                                              sorcePortrOut (1),
+                                              sorcePortrOut (2),
+                                              sorcePortrOut (3),
+                                              sorcePortrOut (4),
+                                              sorcePortrOut (5),
+                                              sorcePortrOut (6));
+                                              -- [[[end]]]
+        iDataIn (i) <= select7x1xVector9(iSwitchPortNumber (i),
+                                        -- [[[cog
+                                        -- a = ",\n".join([f"dataOut ({i})" for i in range(0, int(nports)+1)])
+                                        -- print(f"{a});")
+                                        -- ]]]
+                                        dataOut (0),
+                                        dataOut (1),
+                                        dataOut (2),
+                                        dataOut (3),
+                                        dataOut (4),
+                                        dataOut (5),
+                                        dataOut (6));
+                                        -- [[[end]]]
+        iStrobeIn (i) <= select7x1(iSwitchPortNumber (i),
+                                   -- [[[cog
+                                   -- a = ",\n".join([f"strobeOut ({i})" for i in range(0, int(nports)+1)])
+                                   -- print(f"{a});")
+                                   -- ]]]
+                                   strobeOut (0),
+                                   strobeOut (1),
+                                   strobeOut (2),
+                                   strobeOut (3),
+                                   strobeOut (4),
+                                   strobeOut (5),
+                                   strobeOut (6));
+                                   -- [[[end]]]
+        iTimeOutEEPIn (i) <= select7x1(iSwitchPortNumber (i),
+                                       -- [[[cog
+                                       -- a = ",\n".join([f"timeOutEEPOut ({i})" for i in range(0, int(nports)+1)])
+                                       -- print(f"{a});")
+                                       -- ]]]
+                                       timeOutEEPOut (0),
+                                       timeOutEEPOut (1),
+                                       timeOutEEPOut (2),
+                                       timeOutEEPOut (3),
+                                       timeOutEEPOut (4),
+                                       timeOutEEPOut (5),
+                                       timeOutEEPOut (6));
+                                       -- [[[end]]]
     end generate spx;
 
 ----------------------------------------------------------------------
@@ -742,43 +501,52 @@ begin
     begin
         if(clock'event and clock = '1')then
             iLinkUp (0) <= '1';
-            if(port1LinkStatus (5 downto 0) = "111111")then
+            -- [[[cog
+            -- for i in range(1, int(nports) + 1):
+            --   print(f"if(port{i}LinkStatus (5 downto 0) = \"111111\") then")
+            --   print(f"    iLinkUp ({i}) <= '1';")
+            --   print(f"else")
+            --   print(f"    iLinkUp ({i}) <= '0';")
+            --   print(f"end if;")
+            -- ]]]
+            if(port1LinkStatus (5 downto 0) = "111111") then
                 iLinkUp (1) <= '1';
             else
                 iLinkUp (1) <= '0';
             end if;
-            if(port2LinkStatus (5 downto 0) = "111111")then
+            if(port2LinkStatus (5 downto 0) = "111111") then
                 iLinkUp (2) <= '1';
             else
                 iLinkUp (2) <= '0';
             end if;
-            if(port3LinkStatus (5 downto 0) = "111111")then
+            if(port3LinkStatus (5 downto 0) = "111111") then
                 iLinkUp (3) <= '1';
             else
                 iLinkUp (3) <= '0';
             end if;
-            if(port4LinkStatus (5 downto 0) = "111111")then
+            if(port4LinkStatus (5 downto 0) = "111111") then
                 iLinkUp (4) <= '1';
             else
                 iLinkUp (4) <= '0';
             end if;
-            if(port5LinkStatus (5 downto 0) = "111111")then
+            if(port5LinkStatus (5 downto 0) = "111111") then
                 iLinkUp (5) <= '1';
             else
                 iLinkUp (5) <= '0';
             end if;
-            if(port6LinkStatus (5 downto 0) = "111111")then
+            if(port6LinkStatus (5 downto 0) = "111111") then
                 iLinkUp (6) <= '1';
             else
                 iLinkUp (6) <= '0';
             end if;
+            -- [[[end]]]
         end if;
     end process;
 
 --------------------------------------------------------------------------------
 -- Internal Configuration Port.
 --------------------------------------------------------------------------------
-    port00 : SpaceWireRouterIPRMAPPort
+    port00 : entity work.SpaceWireRouterIPRMAPPort
         generic map (gPortNumber => x"00", gNumberOfExternalPort => cNumberOfExternalPort)
         port map (
             clock                   => clock,
@@ -824,22 +592,90 @@ begin
 --------------------------------------------------------------------------------
 -- SpaceWire Physical Port.
 --------------------------------------------------------------------------------
-    port01 : SpaceWireRouterIPSpaceWirePort
+    -- [[[cog
+    -- tpl = """
+    -- port{i:02} : entity work.SpaceWireRouterIPSpaceWirePort
+    --     generic map (gNumberOfInternalPort => x"{i:02x}", gNumberOfExternalPort => cNumberOfExternalPort)
+    --     port map (
+    --         clock                       => clock,
+    --         transmitClock               => transmitClock,
+    --         receiveClock                => receiveClock,
+    --         reset                       => reset,
+    --
+    --         linkUp                      => iLinkUp,
+    --
+    --         timeOutEnable               => timeOutEnable,
+    --         timeOutCountValue           => timeOutCountValue,
+    --         timeOutEEPOut               => timeOutEEPOut ({i}),
+    --         timeOutEEPIn                => iTimeOutEEPIn ({i}),
+    --         packetDropped               => packetDropped{i},
+    --
+    --         requestOut                  => requestOut ({i}),
+    --         destinationPortOut          => destinationPort ({i}),
+    --         sourcePorOut                => sorcePortrOut ({i}),
+    --         grantedIn                   => granted ({i}),
+    --         readyIn                     => iReadyIn ({i}),
+    --         dataOut                     => dataOut ({i}),
+    --         strobeOut                   => strobeOut ({i}),
+    --
+    --         requestIn                   => iRequestIn ({i}),
+    --         readyOut                    => readyOut ({i}),
+    --         dataIn                      => iDataIn ({i}),
+    --         strobeIn                    => iStrobeIn ({i}),
+    --
+    --         busMasterRequestOut         => busMasterRequestOut ({i}),
+    --         busMasterStrobeOut          => busMasterStrobeOut ({i}),
+    --         busMasterAddressOut         => busMasterAddressOut ({i}),
+    --         busMasterByteEnableOut      => busMasterByteEnableOut ({i}),
+    --         busMasterWriteEnableOut     => busMasterWriteEnableOut ({i}),
+    --         busMasterDataIn             => busSlaveDataOut,
+    --         busMasterDataOut            => busMasterDataOut ({i}),
+    --         busMasterAcknowledgeIn      => busMasterAcknowledgeIn ({i}),
+    --
+    --         tickIn                      => port{i}TickIn,
+    --         timeCodeIn                  => port{i}TiemCodeIn,
+    --         tickOut                     => port{i}TickOut,
+    --         timeCodeOut                 => port{i}TimeCodeOut,
+    --
+    --         linkStart                   => port{i}LinkControl (0),
+    --         linkDisable                 => port{i}LinkControl (1),
+    --         autoStart                   => port{i}LinkControl (2),
+    --         linkReset                   => port{i}LinkReset,
+    --         transmitClockDivide         => port{i}LinkControl (13 downto 8),
+    --         linkStatus                  => port{i}LinkStatus,
+    --         errorStatus                 => port{i}ErrorStatus,
+    --         creditCount                 => port{i}CreditCount,
+    --         outstandingCount            => port{i}OutstandingCount,
+    --
+    --         spaceWireDataOut            => spaceWireDataOut{i},
+    --         spaceWireStrobeOut          => spaceWireStrobeOut{i},
+    --         spaceWireDataIn             => spaceWireDataIn{i},
+    --         spaceWireStrobeIn           => spaceWireStrobeIn{i},
+    --
+    --         statisticalInformationClear => statisticalInformationClear,
+    --         statisticalInformation      => statisticalInformation{i}
+    --         );
+    -- """
+    -- for i in range(1, int(nports) + 1):
+    --   print(tpl.format(i = i))
+    -- ]]]
+
+    port01 : entity work.SpaceWireRouterIPSpaceWirePort
         generic map (gNumberOfInternalPort => x"01", gNumberOfExternalPort => cNumberOfExternalPort)
         port map (
             clock                       => clock,
             transmitClock               => transmitClock,
             receiveClock                => receiveClock,
             reset                       => reset,
---
+
             linkUp                      => iLinkUp,
---
+
             timeOutEnable               => timeOutEnable,
             timeOutCountValue           => timeOutCountValue,
             timeOutEEPOut               => timeOutEEPOut (1),
             timeOutEEPIn                => iTimeOutEEPIn (1),
             packetDropped               => packetDropped1,
---
+
             requestOut                  => requestOut (1),
             destinationPortOut          => destinationPort (1),
             sourcePorOut                => sorcePortrOut (1),
@@ -847,12 +683,12 @@ begin
             readyIn                     => iReadyIn (1),
             dataOut                     => dataOut (1),
             strobeOut                   => strobeOut (1),
---
+
             requestIn                   => iRequestIn (1),
             readyOut                    => readyOut (1),
             dataIn                      => iDataIn (1),
             strobeIn                    => iStrobeIn (1),
---
+
             busMasterRequestOut         => busMasterRequestOut (1),
             busMasterStrobeOut          => busMasterStrobeOut (1),
             busMasterAddressOut         => busMasterAddressOut (1),
@@ -861,12 +697,12 @@ begin
             busMasterDataIn             => busSlaveDataOut,
             busMasterDataOut            => busMasterDataOut (1),
             busMasterAcknowledgeIn      => busMasterAcknowledgeIn (1),
---
+
             tickIn                      => port1TickIn,
             timeCodeIn                  => port1TiemCodeIn,
             tickOut                     => port1TickOut,
             timeCodeOut                 => port1TimeCodeOut,
---
+
             linkStart                   => port1LinkControl (0),
             linkDisable                 => port1LinkControl (1),
             autoStart                   => port1LinkControl (2),
@@ -876,36 +712,33 @@ begin
             errorStatus                 => port1ErrorStatus,
             creditCount                 => port1CreditCount,
             outstandingCount            => port1OutstandingCount,
---
+
             spaceWireDataOut            => spaceWireDataOut1,
             spaceWireStrobeOut          => spaceWireStrobeOut1,
             spaceWireDataIn             => spaceWireDataIn1,
             spaceWireStrobeIn           => spaceWireStrobeIn1,
---                              
+
             statisticalInformationClear => statisticalInformationClear,
             statisticalInformation      => statisticalInformation1
             );
 
 
---------------------------------------------------------------------------------
--- SpaceWire Physical Port.
---------------------------------------------------------------------------------
-    port02 : SpaceWireRouterIPSpaceWirePort
+    port02 : entity work.SpaceWireRouterIPSpaceWirePort
         generic map (gNumberOfInternalPort => x"02", gNumberOfExternalPort => cNumberOfExternalPort)
         port map (
             clock                       => clock,
             transmitClock               => transmitClock,
             receiveClock                => receiveClock,
             reset                       => reset,
---
+
             linkUp                      => iLinkUp,
---
+
             timeOutEnable               => timeOutEnable,
             timeOutCountValue           => timeOutCountValue,
             timeOutEEPOut               => timeOutEEPOut (2),
             timeOutEEPIn                => iTimeOutEEPIn (2),
             packetDropped               => packetDropped2,
---
+
             requestOut                  => requestOut (2),
             destinationPortOut          => destinationPort (2),
             sourcePorOut                => sorcePortrOut (2),
@@ -913,12 +746,12 @@ begin
             readyIn                     => iReadyIn (2),
             dataOut                     => dataOut (2),
             strobeOut                   => strobeOut (2),
---
+
             requestIn                   => iRequestIn (2),
             readyOut                    => readyOut (2),
             dataIn                      => iDataIn (2),
             strobeIn                    => iStrobeIn (2),
---
+
             busMasterRequestOut         => busMasterRequestOut (2),
             busMasterStrobeOut          => busMasterStrobeOut (2),
             busMasterAddressOut         => busMasterAddressOut (2),
@@ -927,12 +760,12 @@ begin
             busMasterDataIn             => busSlaveDataOut,
             busMasterDataOut            => busMasterDataOut (2),
             busMasterAcknowledgeIn      => busMasterAcknowledgeIn (2),
---
+
             tickIn                      => port2TickIn,
             timeCodeIn                  => port2TiemCodeIn,
             tickOut                     => port2TickOut,
             timeCodeOut                 => port2TimeCodeOut,
---
+
             linkStart                   => port2LinkControl (0),
             linkDisable                 => port2LinkControl (1),
             autoStart                   => port2LinkControl (2),
@@ -942,36 +775,33 @@ begin
             errorStatus                 => port2ErrorStatus,
             creditCount                 => port2CreditCount,
             outstandingCount            => port2OutstandingCount,
---
+
             spaceWireDataOut            => spaceWireDataOut2,
             spaceWireStrobeOut          => spaceWireStrobeOut2,
             spaceWireDataIn             => spaceWireDataIn2,
             spaceWireStrobeIn           => spaceWireStrobeIn2,
---
+
             statisticalInformationClear => statisticalInformationClear,
             statisticalInformation      => statisticalInformation2
             );
 
 
---------------------------------------------------------------------------------
--- SpaceWire Physical Port.
---------------------------------------------------------------------------------
-    port03 : SpaceWireRouterIPSpaceWirePort
+    port03 : entity work.SpaceWireRouterIPSpaceWirePort
         generic map (gNumberOfInternalPort => x"03", gNumberOfExternalPort => cNumberOfExternalPort)
         port map (
             clock                       => clock,
             transmitClock               => transmitClock,
             receiveClock                => receiveClock,
             reset                       => reset,
---
+
             linkUp                      => iLinkUp,
---
+
             timeOutEnable               => timeOutEnable,
             timeOutCountValue           => timeOutCountValue,
             timeOutEEPOut               => timeOutEEPOut (3),
             timeOutEEPIn                => iTimeOutEEPIn (3),
             packetDropped               => packetDropped3,
---
+
             requestOut                  => requestOut (3),
             destinationPortOut          => destinationPort (3),
             sourcePorOut                => sorcePortrOut (3),
@@ -979,12 +809,12 @@ begin
             readyIn                     => iReadyIn (3),
             dataOut                     => dataOut (3),
             strobeOut                   => strobeOut (3),
---
+
             requestIn                   => iRequestIn (3),
             readyOut                    => readyOut (3),
             dataIn                      => iDataIn (3),
             strobeIn                    => iStrobeIn (3),
---
+
             busMasterRequestOut         => busMasterRequestOut (3),
             busMasterStrobeOut          => busMasterStrobeOut (3),
             busMasterAddressOut         => busMasterAddressOut (3),
@@ -993,12 +823,12 @@ begin
             busMasterDataIn             => busSlaveDataOut,
             busMasterDataOut            => busMasterDataOut (3),
             busMasterAcknowledgeIn      => busMasterAcknowledgeIn (3),
---
+
             tickIn                      => port3TickIn,
             timeCodeIn                  => port3TiemCodeIn,
             tickOut                     => port3TickOut,
             timeCodeOut                 => port3TimeCodeOut,
---
+
             linkStart                   => port3LinkControl (0),
             linkDisable                 => port3LinkControl (1),
             autoStart                   => port3LinkControl (2),
@@ -1008,36 +838,33 @@ begin
             errorStatus                 => port3ErrorStatus,
             creditCount                 => port3CreditCount,
             outstandingCount            => port3OutstandingCount,
---
+
             spaceWireDataOut            => spaceWireDataOut3,
             spaceWireStrobeOut          => spaceWireStrobeOut3,
             spaceWireDataIn             => spaceWireDataIn3,
             spaceWireStrobeIn           => spaceWireStrobeIn3,
---
+
             statisticalInformationClear => statisticalInformationClear,
             statisticalInformation      => statisticalInformation3
             );
 
 
---------------------------------------------------------------------------------
--- SpaceWire Physical Port.
---------------------------------------------------------------------------------
-    port04 : SpaceWireRouterIPSpaceWirePort
+    port04 : entity work.SpaceWireRouterIPSpaceWirePort
         generic map (gNumberOfInternalPort => x"04", gNumberOfExternalPort => cNumberOfExternalPort)
         port map (
             clock                       => clock,
             transmitClock               => transmitClock,
             receiveClock                => receiveClock,
             reset                       => reset,
---
+
             linkUp                      => iLinkUp,
---
+
             timeOutEnable               => timeOutEnable,
             timeOutCountValue           => timeOutCountValue,
             timeOutEEPOut               => timeOutEEPOut (4),
             timeOutEEPIn                => iTimeOutEEPIn (4),
             packetDropped               => packetDropped4,
---
+
             requestOut                  => requestOut (4),
             destinationPortOut          => destinationPort (4),
             sourcePorOut                => sorcePortrOut (4),
@@ -1045,12 +872,12 @@ begin
             readyIn                     => iReadyIn (4),
             dataOut                     => dataOut (4),
             strobeOut                   => strobeOut (4),
---
+
             requestIn                   => iRequestIn (4),
             readyOut                    => readyOut (4),
             dataIn                      => iDataIn (4),
             strobeIn                    => iStrobeIn (4),
---
+
             busMasterRequestOut         => busMasterRequestOut (4),
             busMasterStrobeOut          => busMasterStrobeOut (4),
             busMasterAddressOut         => busMasterAddressOut (4),
@@ -1059,12 +886,12 @@ begin
             busMasterDataIn             => busSlaveDataOut,
             busMasterDataOut            => busMasterDataOut (4),
             busMasterAcknowledgeIn      => busMasterAcknowledgeIn (4),
---
+
             tickIn                      => port4TickIn,
             timeCodeIn                  => port4TiemCodeIn,
             tickOut                     => port4TickOut,
             timeCodeOut                 => port4TimeCodeOut,
---
+
             linkStart                   => port4LinkControl (0),
             linkDisable                 => port4LinkControl (1),
             autoStart                   => port4LinkControl (2),
@@ -1074,36 +901,33 @@ begin
             errorStatus                 => port4ErrorStatus,
             creditCount                 => port4CreditCount,
             outstandingCount            => port4OutstandingCount,
---
+
             spaceWireDataOut            => spaceWireDataOut4,
             spaceWireStrobeOut          => spaceWireStrobeOut4,
             spaceWireDataIn             => spaceWireDataIn4,
             spaceWireStrobeIn           => spaceWireStrobeIn4,
---
+
             statisticalInformationClear => statisticalInformationClear,
             statisticalInformation      => statisticalInformation4
             );
 
 
---------------------------------------------------------------------------------
--- SpaceWire Physical Port.
---------------------------------------------------------------------------------
-    port05 : SpaceWireRouterIPSpaceWirePort
+    port05 : entity work.SpaceWireRouterIPSpaceWirePort
         generic map (gNumberOfInternalPort => x"05", gNumberOfExternalPort => cNumberOfExternalPort)
         port map (
             clock                       => clock,
             transmitClock               => transmitClock,
             receiveClock                => receiveClock,
             reset                       => reset,
---
+
             linkUp                      => iLinkUp,
---
+
             timeOutEnable               => timeOutEnable,
             timeOutCountValue           => timeOutCountValue,
             timeOutEEPOut               => timeOutEEPOut (5),
             timeOutEEPIn                => iTimeOutEEPIn (5),
             packetDropped               => packetDropped5,
---
+
             requestOut                  => requestOut (5),
             destinationPortOut          => destinationPort (5),
             sourcePorOut                => sorcePortrOut (5),
@@ -1111,12 +935,12 @@ begin
             readyIn                     => iReadyIn (5),
             dataOut                     => dataOut (5),
             strobeOut                   => strobeOut (5),
---
+
             requestIn                   => iRequestIn (5),
             readyOut                    => readyOut (5),
             dataIn                      => iDataIn (5),
             strobeIn                    => iStrobeIn (5),
---
+
             busMasterRequestOut         => busMasterRequestOut (5),
             busMasterStrobeOut          => busMasterStrobeOut (5),
             busMasterAddressOut         => busMasterAddressOut (5),
@@ -1125,12 +949,12 @@ begin
             busMasterDataIn             => busSlaveDataOut,
             busMasterDataOut            => busMasterDataOut (5),
             busMasterAcknowledgeIn      => busMasterAcknowledgeIn (5),
---
+
             tickIn                      => port5TickIn,
             timeCodeIn                  => port5TiemCodeIn,
             tickOut                     => port5TickOut,
             timeCodeOut                 => port5TimeCodeOut,
---
+
             linkStart                   => port5LinkControl (0),
             linkDisable                 => port5LinkControl (1),
             autoStart                   => port5LinkControl (2),
@@ -1140,36 +964,33 @@ begin
             errorStatus                 => port5ErrorStatus,
             creditCount                 => port5CreditCount,
             outstandingCount            => port5OutstandingCount,
---
+
             spaceWireDataOut            => spaceWireDataOut5,
             spaceWireStrobeOut          => spaceWireStrobeOut5,
             spaceWireDataIn             => spaceWireDataIn5,
             spaceWireStrobeIn           => spaceWireStrobeIn5,
---
+
             statisticalInformationClear => statisticalInformationClear,
             statisticalInformation      => statisticalInformation5
             );
 
 
---------------------------------------------------------------------------------
--- SpaceWire Physical Port.
---------------------------------------------------------------------------------
-    port06 : SpaceWireRouterIPSpaceWirePort
+    port06 : entity work.SpaceWireRouterIPSpaceWirePort
         generic map (gNumberOfInternalPort => x"06", gNumberOfExternalPort => cNumberOfExternalPort)
         port map (
             clock                       => clock,
             transmitClock               => transmitClock,
             receiveClock                => receiveClock,
             reset                       => reset,
---
+
             linkUp                      => iLinkUp,
---
+
             timeOutEnable               => timeOutEnable,
             timeOutCountValue           => timeOutCountValue,
             timeOutEEPOut               => timeOutEEPOut (6),
             timeOutEEPIn                => iTimeOutEEPIn (6),
             packetDropped               => packetDropped6,
---
+
             requestOut                  => requestOut (6),
             destinationPortOut          => destinationPort (6),
             sourcePorOut                => sorcePortrOut (6),
@@ -1177,12 +998,12 @@ begin
             readyIn                     => iReadyIn (6),
             dataOut                     => dataOut (6),
             strobeOut                   => strobeOut (6),
---
+
             requestIn                   => iRequestIn (6),
             readyOut                    => readyOut (6),
             dataIn                      => iDataIn (6),
             strobeIn                    => iStrobeIn (6),
---
+
             busMasterRequestOut         => busMasterRequestOut (6),
             busMasterStrobeOut          => busMasterStrobeOut (6),
             busMasterAddressOut         => busMasterAddressOut (6),
@@ -1191,12 +1012,12 @@ begin
             busMasterDataIn             => busSlaveDataOut,
             busMasterDataOut            => busMasterDataOut (6),
             busMasterAcknowledgeIn      => busMasterAcknowledgeIn (6),
---
+
             tickIn                      => port6TickIn,
             timeCodeIn                  => port6TiemCodeIn,
             tickOut                     => port6TickOut,
             timeCodeOut                 => port6TimeCodeOut,
---
+
             linkStart                   => port6LinkControl (0),
             linkDisable                 => port6LinkControl (1),
             autoStart                   => port6LinkControl (2),
@@ -1206,143 +1027,174 @@ begin
             errorStatus                 => port6ErrorStatus,
             creditCount                 => port6CreditCount,
             outstandingCount            => port6OutstandingCount,
---
+
             spaceWireDataOut            => spaceWireDataOut6,
             spaceWireStrobeOut          => spaceWireStrobeOut6,
             spaceWireDataIn             => spaceWireDataIn6,
             spaceWireStrobeIn           => spaceWireStrobeIn6,
---
+
             statisticalInformationClear => statisticalInformationClear,
             statisticalInformation      => statisticalInformation6
             );
 
+    -- [[[end]]]
+
+    -- [[[cog
+    -- tmpl = """
+    -- creditCount{i:02} : entity work.SpaceWireRouterIPCreditCount
+    -- port map (
+    --     clock                       => clock,
+    --     transmitClock               => transmitClock,
+    --     reset                       => reset,
+    --     creditCount                 => port{i}CreditCount,
+    --     outstndingCount             => port{i}OutstandingCount,
+    --     creditCountSynchronized     => port{i}CreditCountSynchronized,
+    --     outstndingCountSynchronized => port{i}OutstandingCountSynchronized
+    --     );
+    -- """
+    -- for i in range(1, int(nports) + 1):
+    --   print(tmpl.format(i = i))
+    -- ]]]
+
+    creditCount01 : entity work.SpaceWireRouterIPCreditCount
+    port map (
+        clock                       => clock,
+        transmitClock               => transmitClock,
+        reset                       => reset,
+        creditCount                 => port1CreditCount,
+        outstndingCount             => port1OutstandingCount,
+        creditCountSynchronized     => port1CreditCountSynchronized,
+        outstndingCountSynchronized => port1OutstandingCountSynchronized
+        );
 
 
-    creditCount01 : SpaceWireRouterIPCreditCount
-        port map (
-            clock                       => clock,
-            transmitClock               => transmitClock,
-            reset                       => reset,
-            creditCount                 => port1CreditCount,
-            outstndingCount             => port1OutstandingCount,
-            creditCountSynchronized     => port1CreditCountSynchronized,
-            outstndingCountSynchronized => port1OutstandingCountSynchronized
-            );
-
-    creditCount02 : SpaceWireRouterIPCreditCount
-        port map (
-            clock                       => clock,
-            transmitClock               => transmitClock,
-            reset                       => reset,
-            creditCount                 => port2CreditCount,
-            outstndingCount             => port2OutstandingCount,
-            creditCountSynchronized     => port2CreditCountSynchronized,
-            outstndingCountSynchronized => port2OutstandingCountSynchronized
-            );
-
-    creditCount03 : SpaceWireRouterIPCreditCount
-        port map (
-            clock                       => clock,
-            transmitClock               => transmitClock,
-            reset                       => reset,
-            creditCount                 => port3CreditCount,
-            outstndingCount             => port3OutstandingCount,
-            creditCountSynchronized     => port3CreditCountSynchronized,
-            outstndingCountSynchronized => port3OutstandingCountSynchronized
-            );
-
-    creditCount04 : SpaceWireRouterIPCreditCount
-        port map (
-            clock                       => clock,
-            transmitClock               => transmitClock,
-            reset                       => reset,
-            creditCount                 => port4CreditCount,
-            outstndingCount             => port4OutstandingCount,
-            creditCountSynchronized     => port4CreditCountSynchronized,
-            outstndingCountSynchronized => port4OutstandingCountSynchronized
-            );
-
-    creditCount05 : SpaceWireRouterIPCreditCount
-        port map (
-            clock                       => clock,
-            transmitClock               => transmitClock,
-            reset                       => reset,
-            creditCount                 => port5CreditCount,
-            outstndingCount             => port5OutstandingCount,
-            creditCountSynchronized     => port5CreditCountSynchronized,
-            outstndingCountSynchronized => port5OutstandingCountSynchronized
-            );
-
-    creditCount06 : SpaceWireRouterIPCreditCount
-        port map (
-            clock                       => clock,
-            transmitClock               => transmitClock,
-            reset                       => reset,
-            creditCount                 => port6CreditCount,
-            outstndingCount             => port6OutstandingCount,
-            creditCountSynchronized     => port6CreditCountSynchronized,
-            outstndingCountSynchronized => port6OutstandingCountSynchronized
-            );
+    creditCount02 : entity work.SpaceWireRouterIPCreditCount
+    port map (
+        clock                       => clock,
+        transmitClock               => transmitClock,
+        reset                       => reset,
+        creditCount                 => port2CreditCount,
+        outstndingCount             => port2OutstandingCount,
+        creditCountSynchronized     => port2CreditCountSynchronized,
+        outstndingCountSynchronized => port2OutstandingCountSynchronized
+        );
 
 
+    creditCount03 : entity work.SpaceWireRouterIPCreditCount
+    port map (
+        clock                       => clock,
+        transmitClock               => transmitClock,
+        reset                       => reset,
+        creditCount                 => port3CreditCount,
+        outstndingCount             => port3OutstandingCount,
+        creditCountSynchronized     => port3CreditCountSynchronized,
+        outstndingCountSynchronized => port3OutstandingCountSynchronized
+        );
 
-    statisticsCounters : SpaceWireRouterIPStatisticsCounter7
+
+    creditCount04 : entity work.SpaceWireRouterIPCreditCount
+    port map (
+        clock                       => clock,
+        transmitClock               => transmitClock,
+        reset                       => reset,
+        creditCount                 => port4CreditCount,
+        outstndingCount             => port4OutstandingCount,
+        creditCountSynchronized     => port4CreditCountSynchronized,
+        outstndingCountSynchronized => port4OutstandingCountSynchronized
+        );
+
+
+    creditCount05 : entity work.SpaceWireRouterIPCreditCount
+    port map (
+        clock                       => clock,
+        transmitClock               => transmitClock,
+        reset                       => reset,
+        creditCount                 => port5CreditCount,
+        outstndingCount             => port5OutstandingCount,
+        creditCountSynchronized     => port5CreditCountSynchronized,
+        outstndingCountSynchronized => port5OutstandingCountSynchronized
+        );
+
+
+    creditCount06 : entity work.SpaceWireRouterIPCreditCount
+    port map (
+        clock                       => clock,
+        transmitClock               => transmitClock,
+        reset                       => reset,
+        creditCount                 => port6CreditCount,
+        outstndingCount             => port6OutstandingCount,
+        creditCountSynchronized     => port6CreditCountSynchronized,
+        outstndingCountSynchronized => port6OutstandingCountSynchronized
+        );
+
+    -- [[[end]]]
+
+    statisticsCounters : entity work.SpaceWireRouterIPStatisticsCounter7
         port map (
             clock                 => clock,
             reset                 => reset,
             allCounterClear       => dropCouterClear,
---
+            -- [[[cog
+            -- tmpl = """
+            -- watchdogTimeOut{i}      => timeOutEEPOut ({i}),
+            -- packetDropped{i}        => packetDropped{i},
+            -- watchdogTimeOutCount{i} => timeOutCount{i},
+            -- dropCount{i}            => packetDropCount{i}
+            -- """.strip()
+            -- a = []
+            -- for i in range(0, int(nports) + 1):
+            --   a.append(tmpl.format(i = i))
+            -- msg = ",\n".join(a)
+            -- print(msg)
+            -- ]]]
             watchdogTimeOut0      => timeOutEEPOut (0),
             packetDropped0        => packetDropped0,
             watchdogTimeOutCount0 => timeOutCount0,
             dropCount0            => packetDropCount0,
---
             watchdogTimeOut1      => timeOutEEPOut (1),
             packetDropped1        => packetDropped1,
             watchdogTimeOutCount1 => timeOutCount1,
             dropCount1            => packetDropCount1,
---
             watchdogTimeOut2      => timeOutEEPOut (2),
             packetDropped2        => packetDropped2,
             watchdogTimeOutCount2 => timeOutCount2,
             dropCount2            => packetDropCount2,
---
             watchdogTimeOut3      => timeOutEEPOut (3),
             packetDropped3        => packetDropped3,
             watchdogTimeOutCount3 => timeOutCount3,
             dropCount3            => packetDropCount3,
---
             watchdogTimeOut4      => timeOutEEPOut (4),
             packetDropped4        => packetDropped4,
             watchdogTimeOutCount4 => timeOutCount4,
             dropCount4            => packetDropCount4,
---
             watchdogTimeOut5      => timeOutEEPOut (5),
             packetDropped5        => packetDropped5,
             watchdogTimeOutCount5 => timeOutCount5,
             dropCount5            => packetDropCount5,
---
             watchdogTimeOut6      => timeOutEEPOut (6),
             packetDropped6        => packetDropped6,
             watchdogTimeOutCount6 => timeOutCount6,
             dropCount6            => packetDropCount6
+            -- [[[end]]]
             );
 
 
-
+    -- [[[cog
+    -- for i in range(1, int(nports) + 1):
+    --   print(f"statisticalInformationPort{i} <= statisticalInformation{i};")
+    -- ]]]
     statisticalInformationPort1 <= statisticalInformation1;
     statisticalInformationPort2 <= statisticalInformation2;
     statisticalInformationPort3 <= statisticalInformation3;
     statisticalInformationPort4 <= statisticalInformation4;
     statisticalInformationPort5 <= statisticalInformation5;
     statisticalInformationPort6 <= statisticalInformation6;
-
-
+    -- [[[end]]]
 
 --------------------------------------------------------------------------------
 -- Router Link Control, Status Registers and Routing Table.
 --------------------------------------------------------------------------------
-    routerControlRegister : SpaceWireRouterIPRouterControlRegister
+    routerControlRegister : entity work.SpaceWireRouterIPRouterControlRegister
         port map (
             clock         => clock,
             reset         => reset,
@@ -1361,36 +1213,57 @@ begin
             requestPort                 => iBusSlaveOriginalPortIn,
 --
             linkUp                      => iLinkUp,
+
+            -- [[[cog
+            -- tmpl = """
+            -- linkControl{i}                => port{i}LinkControl,
+            -- linkStatus{i}                 => port{i}LinkStatus(7 downto 0),
+            -- errorStatus{i}                => port{i}ErrorStatus,
+            -- linkReset{i}                  => port{i}LinkReset,
+            -- """.rstrip()
+            -- for i in range(1, int(nports) + 1):
+            --   print(tmpl.format(i = i))
+            -- ]]]
+
             linkControl1                => port1LinkControl,
             linkStatus1                 => port1LinkStatus(7 downto 0),
             errorStatus1                => port1ErrorStatus,
             linkReset1                  => port1LinkReset,
---
+
             linkControl2                => port2LinkControl,
             linkStatus2                 => port2LinkStatus(7 downto 0),
             errorStatus2                => port2ErrorStatus,
             linkReset2                  => port2LinkReset,
---
+
             linkControl3                => port3LinkControl,
             linkStatus3                 => port3LinkStatus(7 downto 0),
             errorStatus3                => port3ErrorStatus,
             linkReset3                  => port3LinkReset,
---
+
             linkControl4                => port4LinkControl,
             linkStatus4                 => port4LinkStatus(7 downto 0),
             errorStatus4                => port4ErrorStatus,
             linkReset4                  => port4LinkReset,
---
+
             linkControl5                => port5LinkControl,
             linkStatus5                 => port5LinkStatus(7 downto 0),
             errorStatus5                => port5ErrorStatus,
             linkReset5                  => port5LinkReset,
---
+
             linkControl6                => port6LinkControl,
             linkStatus6                 => port6LinkStatus(7 downto 0),
             errorStatus6                => port6ErrorStatus,
             linkReset6                  => port6LinkReset,
+            -- [[[end]]]
 --
+            -- [[[cog
+            -- a = []; b = [];
+            -- for i in range (1, int(nports)+1):
+            --   a.append(f"creditCount{i}                => port{i}CreditCountSynchronized")
+            --   b.append(f"outstandingCount{i}           => port{i}OutstandingCountSynchronized")
+            -- s = ",\n".join(a + b)
+            -- print(f"{s},")
+            -- ]]]
             creditCount1                => port1CreditCountSynchronized,
             creditCount2                => port2CreditCountSynchronized,
             creditCount3                => port3CreditCountSynchronized,
@@ -1403,6 +1276,15 @@ begin
             outstandingCount4           => port4OutstandingCountSynchronized,
             outstandingCount5           => port5OutstandingCountSynchronized,
             outstandingCount6           => port6OutstandingCountSynchronized,
+            -- [[[end]]]
+            -- [[[cog
+            -- a = []; b = [];
+            -- for i in range (0, int(nports)+1):
+            --   a.append(f"timeOutCount{i}               => timeOutCount{i}")
+            --   b.append(f"dropCount{i}                  => packetDropCount{i}")
+            -- s = ",\n".join(a + b)
+            -- print(f"{s},")
+            -- ]]]
             timeOutCount0               => timeOutCount0,
             timeOutCount1               => timeOutCount1,
             timeOutCount2               => timeOutCount2,
@@ -1410,7 +1292,6 @@ begin
             timeOutCount4               => timeOutCount4,
             timeOutCount5               => timeOutCount5,
             timeOutCount6               => timeOutCount6,
---
             dropCount0                  => packetDropCount0,
             dropCount1                  => packetDropCount1,
             dropCount2                  => packetDropCount2,
@@ -1418,6 +1299,7 @@ begin
             dropCount4                  => packetDropCount4,
             dropCount5                  => packetDropCount5,
             dropCount6                  => packetDropCount6,
+            -- [[[end]]]
 --
             dropCouterClear             => dropCouterClear,
 --
@@ -1433,13 +1315,21 @@ begin
 --
             autoTimeCodeValue           => autoTimeCodeValue,
             autoTimeCodeCycleTime       => autoTimeCodeCycleTime,
---          
+--
+            -- [[[cog
+            -- a = []; b = [];
+            -- for i in range (1, int(nports)+1):
+            --   a.append(f"statisticalInformation{i}     => statisticalInformation{i}")
+            -- s = ",\n".join(a)
+            -- print(f"{s},")
+            -- ]]]
             statisticalInformation1     => statisticalInformation1,
             statisticalInformation2     => statisticalInformation2,
             statisticalInformation3     => statisticalInformation3,
             statisticalInformation4     => statisticalInformation4,
             statisticalInformation5     => statisticalInformation5,
             statisticalInformation6     => statisticalInformation6,
+            -- [[[end]]]
             statisticalInformationClear => statisticalInformationClear
             );
 
@@ -1447,11 +1337,17 @@ begin
 --------------------------------------------------------------------------------
 -- Bus arbiter.
 --------------------------------------------------------------------------------
-    busAbiter : SpaceWireRouterIPTableArbiter7 port map (
+    busAbiter : entity work.SpaceWireRouterIPTableArbiter7 port map (
         clock               => clock,
         reset               => reset,
+        -- [[[cog
+        -- n = int(nports)
+        -- print(f"request({n} downto 0) => busMasterRequestOut,")
+        -- print(f"request({n+1})          => busMasterUserRequestIn,")
+        -- ]]]
         request(6 downto 0) => busMasterRequestOut,
         request(7)          => busMasterUserRequestIn,
+        -- [[[end]]]
         granted             => busMasterGranted
         );
 
@@ -1464,9 +1360,21 @@ begin
     begin
         if (clock'event and clock = '1') then
 
-            if (busMasterRequestOut(0) = '1' or busMasterRequestOut(1) = '1' or busMasterRequestOut(2) = '1' or busMasterRequestOut(3) = '1' or
-                busMasterRequestOut(4) = '1' or busMasterRequestOut(5) = '1' or busMasterRequestOut(6) = '1' or busMasterUserRequestIn = '1') then
-                iBusSlaveCycleIn <= '1';
+            if (
+              -- [[[cog
+              -- a = " or\n".join([f"busMasterRequestOut({i}) = '1'" for i in range(0, int(nports)+1)])
+              -- print(f"{a} or")
+              -- ]]]
+              busMasterRequestOut(0) = '1' or
+              busMasterRequestOut(1) = '1' or
+              busMasterRequestOut(2) = '1' or
+              busMasterRequestOut(3) = '1' or
+              busMasterRequestOut(4) = '1' or
+              busMasterRequestOut(5) = '1' or
+              busMasterRequestOut(6) = '1' or
+              -- [[[end]]]
+              busMasterUserRequestIn = '1') then
+              iBusSlaveCycleIn <= '1';
             else
                 iBusSlaveCycleIn <= '0';
             end if;
@@ -1479,6 +1387,20 @@ begin
                 iBusSlaveOriginalPortIn <= busMasterOriginalPortOut(0);
                 iBusSlaveDataIn         <= busMasterDataOut (0);
                 busMasterAcknowledgeIn  <= (0 => iBusSlaveAcknowledgeOut, others => '0');
+            -- [[[cog
+            -- tmpl = """
+            -- elsif (busMasterGranted({i}) = '1') then
+            --     iBusSlaveStrobeIn       <= busMasterStrobeOut ({i});
+            --     iBusSlaveAddressIn      <= busMasterAddressOut ({i});
+            --     iBusSlaveByteEnableIn   <= busMasterByteEnableOut ({i});
+            --     iBusSlaveWriteEnableIn  <= busMasterWriteEnableOut ({i});
+            --     iBusSlaveOriginalPortIn <= x"ff";
+            --     iBusSlaveDataIn         <= (others => '0');
+            --     busMasterAcknowledgeIn  <= ({i}      => iBusSlaveAcknowledgeOut, others => '0');
+            -- """.strip()
+            -- for i in range(1, int(nports) + 1):
+            --   print(tmpl.format(i = i))
+            -- ]]]
             elsif (busMasterGranted(1) = '1') then
                 iBusSlaveStrobeIn       <= busMasterStrobeOut (1);
                 iBusSlaveAddressIn      <= busMasterAddressOut (1);
@@ -1527,6 +1449,7 @@ begin
                 iBusSlaveOriginalPortIn <= x"ff";
                 iBusSlaveDataIn         <= (others => '0');
                 busMasterAcknowledgeIn  <= (6      => iBusSlaveAcknowledgeOut, others => '0');
+            -- [[[end]]]
             else
                 iBusSlaveStrobeIn            <= busMasterUserStrobeIn;
                 iBusSlaveAddressIn           <= busMasterUserAddressIn;
@@ -1547,7 +1470,7 @@ begin
 --------------------------------------------------------------------------------
 -- time code forwarding logic.
 --------------------------------------------------------------------------------
-    timeCodeControl : SpaceWireRouterIPTimeCodeControl6
+    timeCodeControl : entity work.SpaceWireRouterIPTimeCodeControl6
         port map (
             clock                 => clock,
             reset                 => reset,
@@ -1555,6 +1478,17 @@ begin
             linkUp                => iLinkUp,
             receiveTimeCode       => routerTimeCode,
             -- spacewire timecode.
+            -- [[[cog
+            -- tmpl = """
+            -- port{i}TimeCodeEnable   => transmitTimeCodeEnable ({i}),
+            -- port{i}TickIn           => port{i}TickIn,
+            -- port{i}TimeCodeIn       => port{i}TiemCodeIn,
+            -- port{i}TickOut          => port{i}TickOut,
+            -- port{i}TimeCodeOut      => port{i}TimeCodeOut,
+            -- """.strip()
+            -- for i in range(1, int(nports) + 1):
+            --   print(tmpl.format(i = i))
+            -- ]]]
             port1TimeCodeEnable   => transmitTimeCodeEnable (1),
             port1TickIn           => port1TickIn,
             port1TimeCodeIn       => port1TiemCodeIn,
@@ -1585,6 +1519,7 @@ begin
             port6TimeCodeIn       => port6TiemCodeIn,
             port6TickOut          => port6TickOut,
             port6TimeCodeOut      => port6TimeCodeOut,
+            -- [[[end]]]
 --
             autoTimeCodeValue     => autoTimeCodeValue,
             autoTimeCodeCycleTime => autoTimeCodeCycleTime

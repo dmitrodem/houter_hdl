@@ -41,16 +41,6 @@ end SpaceWireRouterIPCreditCount;
 
 architecture behavioral of SpaceWireRouterIPCreditCount is
 
-    component SpaceWireCODECIPSynchronizeOnePulse is
-        port (
-            clock             : in  std_logic;
-            asynchronousClock : in  std_logic;
-            reset             : in  std_logic;
-            asynchronousIn    : in  std_logic;
-            synchronizedOut   : out std_logic
-            );
-    end component;
-
     signal iTransmitClockCounter        : std_logic_vector (3 downto 0);
     signal iDataLatchEnable             : std_logic;
     signal iCreditCountLatched          : std_logic_vector (5 downto 0);
@@ -105,7 +95,7 @@ begin
         end if;
     end process;
 
-    synchronizeOnePulse : SpaceWireCODECIPSynchronizeOnePulse
+    synchronizeOnePulse : entity work.SpaceWireCODECIPSynchronizeOnePulse
         port map (
             clock             => clock,
             asynchronousClock => transmitClock,
