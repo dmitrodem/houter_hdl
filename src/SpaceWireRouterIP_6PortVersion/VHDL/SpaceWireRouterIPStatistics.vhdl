@@ -21,6 +21,10 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 -- THE SOFTWARE.
 -------------------------------------------------------------------------------
+-- [[[cog
+-- n = int(nports) + 1
+-- ]]]
+-- [[[end]]]
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
@@ -32,41 +36,51 @@ entity SpaceWireRouterIPStatisticsCounter7 is
         clock                 : in  std_logic;
         reset                 : in  std_logic;
         allCounterClear       : in  std_logic;
---
+        -- [[[cog
+        -- tmpl = """
+        -- watchdogTimeOut{i}      : in  std_logic;
+        -- packetDropped{i}        : in  std_logic;
+        -- watchdogTimeOutCount{i} : out std_logic_vector (15 downto 0);
+        -- dropCount{i}            : out std_logic_vector (15 downto 0)
+        -- """.rstrip()
+        -- print(";\n".join([tmpl.format(i = i) for i in range(0, n)]))
+        -- ]]]
+
         watchdogTimeOut0      : in  std_logic;
         packetDropped0        : in  std_logic;
         watchdogTimeOutCount0 : out std_logic_vector (15 downto 0);
         dropCount0            : out std_logic_vector (15 downto 0);
---
+
         watchdogTimeOut1      : in  std_logic;
         packetDropped1        : in  std_logic;
         watchdogTimeOutCount1 : out std_logic_vector (15 downto 0);
         dropCount1            : out std_logic_vector (15 downto 0);
---
+
         watchdogTimeOut2      : in  std_logic;
         packetDropped2        : in  std_logic;
         watchdogTimeOutCount2 : out std_logic_vector (15 downto 0);
         dropCount2            : out std_logic_vector (15 downto 0);
---
+
         watchdogTimeOut3      : in  std_logic;
         packetDropped3        : in  std_logic;
         watchdogTimeOutCount3 : out std_logic_vector (15 downto 0);
         dropCount3            : out std_logic_vector (15 downto 0);
---
+
         watchdogTimeOut4      : in  std_logic;
         packetDropped4        : in  std_logic;
         watchdogTimeOutCount4 : out std_logic_vector (15 downto 0);
         dropCount4            : out std_logic_vector (15 downto 0);
---
+
         watchdogTimeOut5      : in  std_logic;
         packetDropped5        : in  std_logic;
         watchdogTimeOutCount5 : out std_logic_vector (15 downto 0);
         dropCount5            : out std_logic_vector (15 downto 0);
---
+
         watchdogTimeOut6      : in  std_logic;
         packetDropped6        : in  std_logic;
         watchdogTimeOutCount6 : out std_logic_vector (15 downto 0);
         dropCount6            : out std_logic_vector (15 downto 0)
+        -- [[[end]]]
         );
 end SpaceWireRouterIPStatisticsCounter7;
 
@@ -78,6 +92,23 @@ begin
 -- Store Link Status Register3 the number of times to count of
 -- TimeOutError and packetDrop of each Port
 ----------------------------------------------------------------------
+    -- [[[cog
+    -- tmpl = """
+    -- eepCount{i:02} : entity work.SpaceWireRouterIPStatisticCounter port map
+    --     (clock       => clock, reset => reset, counterClear => allCounterClear,
+    --      countEnable => watchdogTimeOut{i}, count => watchdogTimeOutCount{i});
+    -- """.strip()
+    -- tmpl2 = """
+    -- packetDroppedCount{i:02} : entity work.SpaceWireRouterIPStatisticCounter port map
+    --     (clock       => clock, reset => reset, counterClear => allCounterClear,
+    --      countEnable => packetDropped{i}, count => dropCount{i});
+    -- """.strip()
+    -- for i in range(0, n):
+    --   print(tmpl.format(i = i))
+    -- print("")
+    -- for i in range(0, n):
+    --   print(tmpl2.format(i = i))
+    -- ]]]
     eepCount00 : entity work.SpaceWireRouterIPStatisticCounter port map
         (clock       => clock, reset => reset, counterClear => allCounterClear,
          countEnable => watchdogTimeOut0, count => watchdogTimeOutCount0);
@@ -100,27 +131,27 @@ begin
         (clock       => clock, reset => reset, counterClear => allCounterClear,
          countEnable => watchdogTimeOut6, count => watchdogTimeOutCount6);
 
-
-    packetDroppedCount10 : entity work.SpaceWireRouterIPStatisticCounter port map
+    packetDroppedCount00 : entity work.SpaceWireRouterIPStatisticCounter port map
         (clock       => clock, reset => reset, counterClear => allCounterClear,
          countEnable => packetDropped0, count => dropCount0);
-    packetDroppedCount11 : entity work.SpaceWireRouterIPStatisticCounter port map
+    packetDroppedCount01 : entity work.SpaceWireRouterIPStatisticCounter port map
         (clock       => clock, reset => reset, counterClear => allCounterClear,
          countEnable => packetDropped1, count => dropCount1);
-    packetDroppedCount12 : entity work.SpaceWireRouterIPStatisticCounter port map
+    packetDroppedCount02 : entity work.SpaceWireRouterIPStatisticCounter port map
         (clock       => clock, reset => reset, counterClear => allCounterClear,
          countEnable => packetDropped2, count => dropCount2);
-    packetDroppedCount13 : entity work.SpaceWireRouterIPStatisticCounter port map
+    packetDroppedCount03 : entity work.SpaceWireRouterIPStatisticCounter port map
         (clock       => clock, reset => reset, counterClear => allCounterClear,
          countEnable => packetDropped3, count => dropCount3);
-    packetDroppedCount14 : entity work.SpaceWireRouterIPStatisticCounter port map
+    packetDroppedCount04 : entity work.SpaceWireRouterIPStatisticCounter port map
         (clock       => clock, reset => reset, counterClear => allCounterClear,
          countEnable => packetDropped4, count => dropCount4);
-    packetDroppedCount15 : entity work.SpaceWireRouterIPStatisticCounter port map
+    packetDroppedCount05 : entity work.SpaceWireRouterIPStatisticCounter port map
         (clock       => clock, reset => reset, counterClear => allCounterClear,
          countEnable => packetDropped5, count => dropCount5);
-    packetDroppedCount16 : entity work.SpaceWireRouterIPStatisticCounter port map
+    packetDroppedCount06 : entity work.SpaceWireRouterIPStatisticCounter port map
         (clock       => clock, reset => reset, counterClear => allCounterClear,
          countEnable => packetDropped6, count => dropCount6);
+    -- [[[end]]]
 
 end behavioral;

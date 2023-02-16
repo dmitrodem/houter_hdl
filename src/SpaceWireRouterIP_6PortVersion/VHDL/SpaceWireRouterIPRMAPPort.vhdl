@@ -21,6 +21,10 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 -- THE SOFTWARE.
 -------------------------------------------------------------------------------
+-- [[[cog
+-- n = int(nports) + 1
+-- ]]]
+-- [[[end]]]
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
@@ -30,13 +34,17 @@ use IEEE.STD_LOGIC_UNSIGNED.all;
 
 entity SpaceWireRouterIPRMAPPort is
     generic (
-        gPortNumber           : std_logic_vector (7 downto 0) := x"00";
-        gNumberOfExternalPort : std_logic_vector (4 downto 0) := "00110");
+        gPortNumber           : std_logic_vector (7 downto 0);
+        gNumberOfExternalPort : std_logic_vector (7 downto 0));
     port (
         clock                   : in  std_logic;
         reset                   : in  std_logic;
         -- switch info.
+        -- [[[cog
+        -- print(f"linkUp                  : in  std_logic_vector ({n-1} downto 0);");
+        -- ]]]
         linkUp                  : in  std_logic_vector (6 downto 0);
+        -- [[[end]]]
         timeOutEnable           : in  std_logic;
         timeOutCountValue       : in  std_logic_vector (19 downto 0);
         timeOutEEPOut           : out std_logic;

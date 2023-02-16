@@ -21,7 +21,10 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 -- THE SOFTWARE.
 -------------------------------------------------------------------------------
-
+-- [[[cog
+-- n = int(nports) + 1
+-- ]]]
+-- [[[end]]]
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;

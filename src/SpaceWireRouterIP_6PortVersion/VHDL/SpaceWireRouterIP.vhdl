@@ -21,7 +21,10 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 -- THE SOFTWARE.
 -------------------------------------------------------------------------------
-
+-- [[[cog
+-- n = int(nports) + 1
+-- ]]]
+-- [[[end]]]
 library work;
 use work.SpaceWireRouterIPPackage.all;
 use work.SpaceWireCODECIPPackage.all;
@@ -323,7 +326,11 @@ architecture behavioral of SpaceWireRouterIP is
 --
     signal ibusMasterDataOut                 : std_logic_vector (31 downto 0);
 
+    -- [[[cog
+    -- print(f"signal iLinkUp : std_logic_vector ({n-1} downto 0);")
+    -- ]]]
     signal iLinkUp : std_logic_vector (6 downto 0);
+    -- [[[end]]]
 
 begin
 

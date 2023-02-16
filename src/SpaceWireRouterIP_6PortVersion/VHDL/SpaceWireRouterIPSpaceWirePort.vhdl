@@ -21,6 +21,10 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 -- THE SOFTWARE.
 -------------------------------------------------------------------------------
+-- [[[cog
+-- n = int(nports) + 1
+-- ]]]
+-- [[[end]]]
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
@@ -33,7 +37,7 @@ use work.SpaceWireCODECIPPackage.all;
 entity SpaceWireRouterIPSpaceWirePort is
     generic (
         gNumberOfInternalPort : std_logic_vector (7 downto 0);
-        gNumberOfExternalPort : std_logic_vector (4 downto 0));
+        gNumberOfExternalPort : std_logic_vector (7 downto 0));
     port (
         -- Clock & Reset.
         clock                       : in  std_logic;
@@ -41,7 +45,11 @@ entity SpaceWireRouterIPSpaceWirePort is
         receiveClock                : in  std_logic;
         reset                       : in  std_logic;
         -- switch info.
+        -- [[[cog
+        -- print(f"linkUp                      : in  std_logic_vector ({n-1} downto 0);")
+        -- ]]]
         linkUp                      : in  std_logic_vector (6 downto 0);
+        -- [[[end]]]
         -- router time out.
         timeOutEnable               : in  std_logic;
         timeOutCountValue           : in  std_logic_vector (19 downto 0);
@@ -115,7 +123,7 @@ architecture behavioral of SpaceWireRouterIPSpaceWirePort is
     signal timeOut                  : std_logic_vector (5 downto 0);
     signal controlFlagsOut          : std_logic_vector (1 downto 0);
     signal iReceiveFIFOReady        : std_logic;
-    
+
     type busStateMachine is (
         busStateIdle,
         busStatedestination0,
@@ -234,7 +242,7 @@ begin
             iRoutingTableRequest   <= '0';
             iWatchdogClear         <= '0';
             iPacketDropped         <= '0';
-            
+
         elsif (clock'event and clock = '1') then
             case busState is
 
@@ -288,13 +296,19 @@ begin
                 -- Transmit Request to DestinationPort.
                 ----------------------------------------------------------------------
                 when busStatedestination2 =>
-                    if ((iDestinationPortOut (4 downto 0) = "00000")
-                        or (linkUp (1) = '1' and iDestinationPortOut (4 downto 0) = "00001")
-                        or (linkUp (2) = '1' and iDestinationPortOut (4 downto 0) = "00010")
-                        or (linkUp (3) = '1' and iDestinationPortOut (4 downto 0) = "00011")
-                        or (linkUp (4) = '1' and iDestinationPortOut (4 downto 0) = "00100")
-                        or (linkUp (5) = '1' and iDestinationPortOut (4 downto 0) = "00101")
-                        or (linkUp (6) = '1' and iDestinationPortOut (4 downto 0) = "00110")) then
+                    if ((iDestinationPortOut = x"00")
+                        -- [[[cog
+                        -- for i in range(1, n):
+                        --   print(f"or (linkUp ({i}) = '1' and iDestinationPortOut = x\"{i:02x}\")")
+                        -- ]]]
+                        or (linkUp (1) = '1' and iDestinationPortOut = x"01")
+                        or (linkUp (2) = '1' and iDestinationPortOut = x"02")
+                        or (linkUp (3) = '1' and iDestinationPortOut = x"03")
+                        or (linkUp (4) = '1' and iDestinationPortOut = x"04")
+                        or (linkUp (5) = '1' and iDestinationPortOut = x"05")
+                        or (linkUp (6) = '1' and iDestinationPortOut = x"06")
+                        -- [[[end]]]
+                        ) then
                         iRequestOut <= '1';
                         busState    <= busStateData0;
                     else
@@ -311,11 +325,17 @@ begin
                         busState <= busStateRoutingTable1;
                     end if;
                 ----------------------------------------------------------------------
-                --@ECSS-E-ST-50-12C 10.6.3 Logical addressing 
+                -- @ECSS-E-ST-50-12C 10.6.3 Logical addressing
                 -- Request to the data which read from a routing table.
                 ----------------------------------------------------------------------
                 when busStateRoutingTable1 =>
                     iRoutingTableRequest <= '0';
+                    -- [[[cog
+                    -- for i in range(0, n):
+                    --   cmd = "if" if (i == 0) else "elsif"
+                    --   print(f"{cmd} (linkUp ({i}) = '1' and busMasterDataIn ({i}) = '1') then")
+                    --   print(f"    iDestinationPortOut <= x\"{i:02x}\"; iRequestOut <= '1'; busState <= busStateRoutingTable2;")
+                    -- ]]]
                     if (linkUp (0) = '1' and busMasterDataIn (0) = '1') then
                         iDestinationPortOut <= x"00"; iRequestOut <= '1'; busState <= busStateRoutingTable2;
                     elsif (linkUp (1) = '1' and busMasterDataIn (1) = '1') then
@@ -330,6 +350,7 @@ begin
                         iDestinationPortOut <= x"05"; iRequestOut <= '1'; busState <= busStateRoutingTable2;
                     elsif (linkUp (6) = '1' and busMasterDataIn (6) = '1') then
                         iDestinationPortOut <= x"06"; iRequestOut <= '1'; busState <= busStateRoutingTable2;
+                    -- [[[end]]]
                     else
                         -- discard invalid addressed packet.
                         iPacketDropped <= '1';
@@ -432,7 +453,7 @@ begin
                 when others => null;
             end case;
         end if;
-        
+
     end process;
 
     destinationPortOut      <= iDestinationPortOut;
@@ -446,8 +467,8 @@ begin
     busMasterWriteEnableOut <= '0';
     busMasterByteEnableOut  <= "1111";
     busMasterDataOut        <= (others => '0');
-    
-    
+
+
     watchdogTimerCount : entity work.SpaceWireRouterIPTimeOutCount port map (
         clock             => clock,
         reset             => reset,
@@ -474,5 +495,5 @@ begin
 --
     iTransmitFIFOReady       <= '1'               when transmitFIFOCount < "110000" else '0';
     iReadyOut                <= '0'               when eepWait = '1'                else iTransmitFIFOReady;
-    
+
 end behavioral;

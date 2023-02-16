@@ -1,0 +1,32 @@
+* How to add RouterPort
+
+It is necessary to modify almost all files to add SpaceWirePort of SpaceWire Router IP.
+Below is a rough overview.
+
+** 1. Space Wire Router IP
+Instantiate CreditCount, SpaceWirePort for the added port.
+Add additional port inputs and outputs to the multiplexer.
+
+** Space Wire Ports
+Add an additional port number to the routing criteria when decoding SpaceWireAddress.
+Add additional port numbers to routing conditions when decoding logical addresses.
+
+** Arbiter7x7
+Add additional port numbers to round robin.
+Add additional port numbers to conditions that generate Requester, Granted, Occupied.
+
+** TableArbiters
+Add additional port numbers to round robin.
+
+**  Time Code Control
+Add a timecode transmission circuit to transmit the timecode to the additional port.
+Add a circuit to check the timecode when the additional port receives the timecode.
+
+** StatisticsCounter
+Instantiate a StatisticCounter for additional ports.
+
+** RouterControlRegister
+Add various information registers for additional ports.
+
+**  SpaceWireRouterIPPackage
+Modify each function from 6 ports to 6+ additional ports.
