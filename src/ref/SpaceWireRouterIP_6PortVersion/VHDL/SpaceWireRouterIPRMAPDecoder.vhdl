@@ -192,15 +192,7 @@ architecture behavioral of SpaceWireRouterIPRMAPDecoder is
     signal iBusMasterByteEnableOut  : std_logic_vector (3 downto 0);
     signal iBusMasterWriteEnableOut : std_logic;
 
-    component SpaceWireRouterIPCRCRomXilinx is
-        port (
-            clock    : in  std_logic;
-            address  : in  std_logic_vector (8 downto 0);
-            readData : out std_logic_vector (7 downto 0)
-            );
-    end component;
-
-    component SpaceWireRouterIPCRCRomAltera is
+    component SpaceWireRouterIPCRCRom is
         port (
             clock    : in  std_logic;
             address  : in  std_logic_vector (8 downto 0);
@@ -703,29 +695,12 @@ begin
 --------------------------------------------------------------------------------
     iCommandCRCRomAddress <= crcRevision & iCommandCRCRomAddressBuffer;
 
-----------------------------------------------------------------------
--- Xilinx.
-----------------------------------------------------------------------
-    receiveCRCromXilinxGenerate : if cUseDevice = 1 generate
-        receiveCRCRomXilinx : SpaceWireRouterIPCRCRomXilinx
+        receiveCRCRom : SpaceWireRouterIPCRCRom
             port map (
                 clock    => clock,
                 address  => iCommandCRCRomAddress,
                 readData => commandCRCCalculateDataOut
                 );
-    end generate;
-
-----------------------------------------------------------------------
--- Altera.
-----------------------------------------------------------------------
-    receiveCRCRomAlteraGenerate : if cUseDevice = 0 generate
-        receiveCRCRomAltera : SpaceWireRouterIPCRCRomAltera
-            port map (
-                clock    => clock,
-                address  => iCommandCRCRomAddress,
-                readData => commandCRCCalculateDataOut
-                );
-    end generate;
 
 --------------------------------------------------------------------------------
 
@@ -805,29 +780,12 @@ begin
 --------------------------------------------------------------------------------
     iReplyCRCRomAddress <= crcRevision & iReplyCRCAddressBuffer;
 
-----------------------------------------------------------------------
--- Xilinx.
-----------------------------------------------------------------------
-    transmitCRCRomXilinxGenerate : if cUseDevice = 1 generate
-        transmitCRCRomXilinx : SpaceWireRouterIPCRCRomXilinx
+        transmitCRCRom : SpaceWireRouterIPCRCRom
             port map (
                 clock    => clock,
                 address  => iReplyCRCRomAddress,
                 readData => replyCRCCalculateDataOut
                 );
-    end generate;
-
-----------------------------------------------------------------------
--- Altera.
-----------------------------------------------------------------------
-    transmitCRCRomAlteraGenerate : if cUseDevice = 0 generate
-        transmitCRCRomAltera : SpaceWireRouterIPCRCRomAltera
-            port map (
-                clock    => clock,
-                address  => iReplyCRCRomAddress,
-                readData => replyCRCCalculateDataOut
-                );
-    end generate;
 
 --------------------------------------------------------------------------------
 

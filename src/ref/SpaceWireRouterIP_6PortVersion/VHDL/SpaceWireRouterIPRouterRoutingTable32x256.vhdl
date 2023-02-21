@@ -48,17 +48,7 @@ end SpaceWireRouterIPRouterRoutingTable32x256;
 
 architecture behavioral of SpaceWireRouterIPRouterRoutingTable32x256 is
 
-    component SpaceWireRouterIPRam32x256Xilinx is
-        port (
-            clock       : in  std_logic;
-            writeData   : in  std_logic_vector (31 downto 0);
-            address     : in  std_logic_vector (7 downto 0);
-            writeEnable : in  std_logic;
-            readData    : out std_logic_vector (31 downto 0)
-            );
-    end component;
-
-    component SpaceWireRouterIPRam32x256Altera is
+    component SpaceWireRouterIPRam32x256 is
         port (
             clock       : in  std_logic;
             writeData   : in  std_logic_vector (31 downto 0);
@@ -93,9 +83,7 @@ begin
 --------------------------------------------------------------------------------
 -- Routing Table.
 --------------------------------------------------------------------------------
--- Xilinx
-    xilinxRam32x256_generate : if cUseDevice = 1 generate
-        ramXilinx : SpaceWireRouterIPRam32x256Xilinx
+        ram0 : SpaceWireRouterIPRam32x256
             port map (
                 clock       => clock,
                 writeData   => iWriteData,
@@ -103,19 +91,6 @@ begin
                 writeEnable => iWriteEnableRegister,
                 readData    => ramDataOut
                 );
-    end generate;
-
--- Altera
-    alteraRam32x256_generate : if cUseDevice = 0 generate
-        ramAltera : SpaceWireRouterIPRam32x256Altera
-            port map (
-                clock       => clock,
-                writeData   => iWriteData,
-                address     => address,
-                writeEnable => iWriteEnableRegister,
-                readData    => ramDataOut
-                );
-    end generate;
 
     readData <= iReadData;
 
