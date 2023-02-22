@@ -5,12 +5,12 @@ entity SpaceWireRouterIPCRCRom is
   port (
     clock   : in  std_logic;
     address : in  std_logic_vector (8 downto 0);
-    data    : out std_logic_vector (7 downto 0));
+    readData    : out std_logic_vector (7 downto 0));
 end entity SpaceWireRouterIPCRCRom;
 
 architecture rtl of SpaceWireRouterIPCRCRom is
 
-  signal romdata : std_logic_vector (data'range);
+  signal romdata : std_logic_vector (readData'range);
 
 begin  -- architecture rtl
 
@@ -536,7 +536,7 @@ begin  -- architecture rtl
   seq: process (clock) is
   begin  -- process seq
     if rising_edge(clock) then
-      data <= romdata;
+      readData <= romdata;
     end if;
   end process seq;
 
