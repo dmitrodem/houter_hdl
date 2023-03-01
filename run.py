@@ -2,7 +2,7 @@
 
 from pathlib import Path
 import sys
-sys.path.append((Path(__file__).parent / "submodules" / "vunit").as_posix())
+sys.path.insert(0, (Path(__file__).parent / "submodules" / "vunit").as_posix())
 from vunit import VUnit
 
 ROOT = Path(__file__).parent / "src"
