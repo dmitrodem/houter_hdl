@@ -26,12 +26,9 @@
 -- ]]]
 -- [[[end]]]
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
-use IEEE.STD_LOGIC_ARITH.all;
-use IEEE.STD_LOGIC_UNSIGNED.all;
+library ieee;
+use ieee.std_logic_1164.all;
 
-library work;
 use work.SpaceWireCODECIPPackage.all;
 
 entity SpaceWireRouterIPSpaceWirePort is
@@ -144,7 +141,7 @@ architecture behavioral of SpaceWireRouterIPSpaceWirePort is
 --
     signal iRequestOut          : std_logic;
     signal iDestinationPortOut  : std_logic_vector (7 downto 0);
-    signal iDataOut             : std_logic_vector (8 downto 0);
+    signal iDataOut             : std_logic_vector (8 downto 0) := (others => '0');
     signal iStrobeOut           : std_logic;
     signal iRoutingTableAddress : std_logic_vector (7 downto 0);
     signal iRoutingTableRequest : std_logic;
@@ -169,9 +166,11 @@ begin
     iTimeIn         <= timeCodeIn (5 downto 0);
 
 
-    process(clock)
+    process(clock, reset)
     begin
-        if(clock'event and clock = '1')then
+        if (reset = '1') then
+            readyOut <= '0';
+        elsif (clock'event and clock = '1')then
             readyOut <= iReadyOut;
         end if;
     end process;
@@ -219,7 +218,8 @@ begin
             spaceWireStrobeIn           => spaceWireStrobeIn,
             -- Statistics.
             statisticalInformationClear => statisticalInformationClear,
-            statisticalInformation      => statisticalInformation
+            statisticalInformation      => statisticalInformation,
+            testen => '0'
             );
 
     iReceiveFIFOReady <= '0' when receiveFIFOEmpty = '1' else '1';
@@ -450,7 +450,7 @@ begin
                     else
                         busState <= busStateDummy0;
                     end if;
-                when others => null;
+                --when others => null;
             end case;
         end if;
 

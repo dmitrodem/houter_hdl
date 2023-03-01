@@ -26,10 +26,9 @@
 -- ]]]
 -- [[[end]]]
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
-use IEEE.STD_LOGIC_ARITH.all;
-use IEEE.STD_LOGIC_UNSIGNED.all;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 entity SpaceWireRouterIPRoundArbiter7 is
     port (
@@ -107,120 +106,120 @@ begin
                 --     cmd = "if" if (j == 0) else "elsif"
                 --     k = (i+1+j) % n
                 --     mask = 1 << k
-                --     print(f"    {cmd} (irequest{k} = '1' and ioccupied = '0') then")
+                --     print(f"    {cmd} (iRequest{k} = '1' and ioccupied = '0') then")
                 --     print(f"        iGranted <= \"{mask:0{n}b}\"; iLastGranted <= x\"{k:02x}\";")
                 --   print(f"    end if;")
                 -- ]]]
                 when x"00" =>
-                    if (irequest1 = '1' and ioccupied = '0') then
+                    if (iRequest1 = '1' and ioccupied = '0') then
                         iGranted <= "0000010"; iLastGranted <= x"01";
-                    elsif (irequest2 = '1' and ioccupied = '0') then
+                    elsif (iRequest2 = '1' and ioccupied = '0') then
                         iGranted <= "0000100"; iLastGranted <= x"02";
-                    elsif (irequest3 = '1' and ioccupied = '0') then
+                    elsif (iRequest3 = '1' and ioccupied = '0') then
                         iGranted <= "0001000"; iLastGranted <= x"03";
-                    elsif (irequest4 = '1' and ioccupied = '0') then
+                    elsif (iRequest4 = '1' and ioccupied = '0') then
                         iGranted <= "0010000"; iLastGranted <= x"04";
-                    elsif (irequest5 = '1' and ioccupied = '0') then
+                    elsif (iRequest5 = '1' and ioccupied = '0') then
                         iGranted <= "0100000"; iLastGranted <= x"05";
-                    elsif (irequest6 = '1' and ioccupied = '0') then
+                    elsif (iRequest6 = '1' and ioccupied = '0') then
                         iGranted <= "1000000"; iLastGranted <= x"06";
-                    elsif (irequest0 = '1' and ioccupied = '0') then
+                    elsif (iRequest0 = '1' and ioccupied = '0') then
                         iGranted <= "0000001"; iLastGranted <= x"00";
                     end if;
                 when x"01" =>
-                    if (irequest2 = '1' and ioccupied = '0') then
+                    if (iRequest2 = '1' and ioccupied = '0') then
                         iGranted <= "0000100"; iLastGranted <= x"02";
-                    elsif (irequest3 = '1' and ioccupied = '0') then
+                    elsif (iRequest3 = '1' and ioccupied = '0') then
                         iGranted <= "0001000"; iLastGranted <= x"03";
-                    elsif (irequest4 = '1' and ioccupied = '0') then
+                    elsif (iRequest4 = '1' and ioccupied = '0') then
                         iGranted <= "0010000"; iLastGranted <= x"04";
-                    elsif (irequest5 = '1' and ioccupied = '0') then
+                    elsif (iRequest5 = '1' and ioccupied = '0') then
                         iGranted <= "0100000"; iLastGranted <= x"05";
-                    elsif (irequest6 = '1' and ioccupied = '0') then
+                    elsif (iRequest6 = '1' and ioccupied = '0') then
                         iGranted <= "1000000"; iLastGranted <= x"06";
-                    elsif (irequest0 = '1' and ioccupied = '0') then
+                    elsif (iRequest0 = '1' and ioccupied = '0') then
                         iGranted <= "0000001"; iLastGranted <= x"00";
-                    elsif (irequest1 = '1' and ioccupied = '0') then
+                    elsif (iRequest1 = '1' and ioccupied = '0') then
                         iGranted <= "0000010"; iLastGranted <= x"01";
                     end if;
                 when x"02" =>
-                    if (irequest3 = '1' and ioccupied = '0') then
+                    if (iRequest3 = '1' and ioccupied = '0') then
                         iGranted <= "0001000"; iLastGranted <= x"03";
-                    elsif (irequest4 = '1' and ioccupied = '0') then
+                    elsif (iRequest4 = '1' and ioccupied = '0') then
                         iGranted <= "0010000"; iLastGranted <= x"04";
-                    elsif (irequest5 = '1' and ioccupied = '0') then
+                    elsif (iRequest5 = '1' and ioccupied = '0') then
                         iGranted <= "0100000"; iLastGranted <= x"05";
-                    elsif (irequest6 = '1' and ioccupied = '0') then
+                    elsif (iRequest6 = '1' and ioccupied = '0') then
                         iGranted <= "1000000"; iLastGranted <= x"06";
-                    elsif (irequest0 = '1' and ioccupied = '0') then
+                    elsif (iRequest0 = '1' and ioccupied = '0') then
                         iGranted <= "0000001"; iLastGranted <= x"00";
-                    elsif (irequest1 = '1' and ioccupied = '0') then
+                    elsif (iRequest1 = '1' and ioccupied = '0') then
                         iGranted <= "0000010"; iLastGranted <= x"01";
-                    elsif (irequest2 = '1' and ioccupied = '0') then
+                    elsif (iRequest2 = '1' and ioccupied = '0') then
                         iGranted <= "0000100"; iLastGranted <= x"02";
                     end if;
                 when x"03" =>
-                    if (irequest4 = '1' and ioccupied = '0') then
+                    if (iRequest4 = '1' and ioccupied = '0') then
                         iGranted <= "0010000"; iLastGranted <= x"04";
-                    elsif (irequest5 = '1' and ioccupied = '0') then
+                    elsif (iRequest5 = '1' and ioccupied = '0') then
                         iGranted <= "0100000"; iLastGranted <= x"05";
-                    elsif (irequest6 = '1' and ioccupied = '0') then
+                    elsif (iRequest6 = '1' and ioccupied = '0') then
                         iGranted <= "1000000"; iLastGranted <= x"06";
-                    elsif (irequest0 = '1' and ioccupied = '0') then
+                    elsif (iRequest0 = '1' and ioccupied = '0') then
                         iGranted <= "0000001"; iLastGranted <= x"00";
-                    elsif (irequest1 = '1' and ioccupied = '0') then
+                    elsif (iRequest1 = '1' and ioccupied = '0') then
                         iGranted <= "0000010"; iLastGranted <= x"01";
-                    elsif (irequest2 = '1' and ioccupied = '0') then
+                    elsif (iRequest2 = '1' and ioccupied = '0') then
                         iGranted <= "0000100"; iLastGranted <= x"02";
-                    elsif (irequest3 = '1' and ioccupied = '0') then
+                    elsif (iRequest3 = '1' and ioccupied = '0') then
                         iGranted <= "0001000"; iLastGranted <= x"03";
                     end if;
                 when x"04" =>
-                    if (irequest5 = '1' and ioccupied = '0') then
+                    if (iRequest5 = '1' and ioccupied = '0') then
                         iGranted <= "0100000"; iLastGranted <= x"05";
-                    elsif (irequest6 = '1' and ioccupied = '0') then
+                    elsif (iRequest6 = '1' and ioccupied = '0') then
                         iGranted <= "1000000"; iLastGranted <= x"06";
-                    elsif (irequest0 = '1' and ioccupied = '0') then
+                    elsif (iRequest0 = '1' and ioccupied = '0') then
                         iGranted <= "0000001"; iLastGranted <= x"00";
-                    elsif (irequest1 = '1' and ioccupied = '0') then
+                    elsif (iRequest1 = '1' and ioccupied = '0') then
                         iGranted <= "0000010"; iLastGranted <= x"01";
-                    elsif (irequest2 = '1' and ioccupied = '0') then
+                    elsif (iRequest2 = '1' and ioccupied = '0') then
                         iGranted <= "0000100"; iLastGranted <= x"02";
-                    elsif (irequest3 = '1' and ioccupied = '0') then
+                    elsif (iRequest3 = '1' and ioccupied = '0') then
                         iGranted <= "0001000"; iLastGranted <= x"03";
-                    elsif (irequest4 = '1' and ioccupied = '0') then
+                    elsif (iRequest4 = '1' and ioccupied = '0') then
                         iGranted <= "0010000"; iLastGranted <= x"04";
                     end if;
                 when x"05" =>
-                    if (irequest6 = '1' and ioccupied = '0') then
+                    if (iRequest6 = '1' and ioccupied = '0') then
                         iGranted <= "1000000"; iLastGranted <= x"06";
-                    elsif (irequest0 = '1' and ioccupied = '0') then
+                    elsif (iRequest0 = '1' and ioccupied = '0') then
                         iGranted <= "0000001"; iLastGranted <= x"00";
-                    elsif (irequest1 = '1' and ioccupied = '0') then
+                    elsif (iRequest1 = '1' and ioccupied = '0') then
                         iGranted <= "0000010"; iLastGranted <= x"01";
-                    elsif (irequest2 = '1' and ioccupied = '0') then
+                    elsif (iRequest2 = '1' and ioccupied = '0') then
                         iGranted <= "0000100"; iLastGranted <= x"02";
-                    elsif (irequest3 = '1' and ioccupied = '0') then
+                    elsif (iRequest3 = '1' and ioccupied = '0') then
                         iGranted <= "0001000"; iLastGranted <= x"03";
-                    elsif (irequest4 = '1' and ioccupied = '0') then
+                    elsif (iRequest4 = '1' and ioccupied = '0') then
                         iGranted <= "0010000"; iLastGranted <= x"04";
-                    elsif (irequest5 = '1' and ioccupied = '0') then
+                    elsif (iRequest5 = '1' and ioccupied = '0') then
                         iGranted <= "0100000"; iLastGranted <= x"05";
                     end if;
                 when others =>
-                    if (irequest0 = '1' and ioccupied = '0') then
+                    if (iRequest0 = '1' and ioccupied = '0') then
                         iGranted <= "0000001"; iLastGranted <= x"00";
-                    elsif (irequest1 = '1' and ioccupied = '0') then
+                    elsif (iRequest1 = '1' and ioccupied = '0') then
                         iGranted <= "0000010"; iLastGranted <= x"01";
-                    elsif (irequest2 = '1' and ioccupied = '0') then
+                    elsif (iRequest2 = '1' and ioccupied = '0') then
                         iGranted <= "0000100"; iLastGranted <= x"02";
-                    elsif (irequest3 = '1' and ioccupied = '0') then
+                    elsif (iRequest3 = '1' and ioccupied = '0') then
                         iGranted <= "0001000"; iLastGranted <= x"03";
-                    elsif (irequest4 = '1' and ioccupied = '0') then
+                    elsif (iRequest4 = '1' and ioccupied = '0') then
                         iGranted <= "0010000"; iLastGranted <= x"04";
-                    elsif (irequest5 = '1' and ioccupied = '0') then
+                    elsif (iRequest5 = '1' and ioccupied = '0') then
                         iGranted <= "0100000"; iLastGranted <= x"05";
-                    elsif (irequest6 = '1' and ioccupied = '0') then
+                    elsif (iRequest6 = '1' and ioccupied = '0') then
                         iGranted <= "1000000"; iLastGranted <= x"06";
                     end if;
                 -- [[[end]]]
@@ -230,13 +229,13 @@ begin
             -- for i in range(0, n):
             --   print(f"if (irequest{i} = '0' and iGranted ({i}) = '1') then iGranted ({i}) <= '0'; end if;")
             -- ]]]
-            if (irequest0 = '0' and iGranted (0) = '1') then iGranted (0) <= '0'; end if;
-            if (irequest1 = '0' and iGranted (1) = '1') then iGranted (1) <= '0'; end if;
-            if (irequest2 = '0' and iGranted (2) = '1') then iGranted (2) <= '0'; end if;
-            if (irequest3 = '0' and iGranted (3) = '1') then iGranted (3) <= '0'; end if;
-            if (irequest4 = '0' and iGranted (4) = '1') then iGranted (4) <= '0'; end if;
-            if (irequest5 = '0' and iGranted (5) = '1') then iGranted (5) <= '0'; end if;
-            if (irequest6 = '0' and iGranted (6) = '1') then iGranted (6) <= '0'; end if;
+            if (iRequest0 = '0' and iGranted (0) = '1') then iGranted (0) <= '0'; end if;
+            if (iRequest1 = '0' and iGranted (1) = '1') then iGranted (1) <= '0'; end if;
+            if (iRequest2 = '0' and iGranted (2) = '1') then iGranted (2) <= '0'; end if;
+            if (iRequest3 = '0' and iGranted (3) = '1') then iGranted (3) <= '0'; end if;
+            if (iRequest4 = '0' and iGranted (4) = '1') then iGranted (4) <= '0'; end if;
+            if (iRequest5 = '0' and iGranted (5) = '1') then iGranted (5) <= '0'; end if;
+            if (iRequest6 = '0' and iGranted (6) = '1') then iGranted (6) <= '0'; end if;
             -- [[[end]]]
         end if;
 

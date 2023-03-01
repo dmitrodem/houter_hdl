@@ -22,11 +22,9 @@
 -- THE SOFTWARE.
 -------------------------------------------------------------------------------
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
-use IEEE.STD_LOGIC_ARITH.all;
-use IEEE.STD_LOGIC_UNSIGNED.all;
-
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 entity SpaceWireRouterIPTimeOutEEP is
     port (
@@ -51,7 +49,7 @@ architecture behavioral of SpaceWireRouterIPTimeOutEEP is
 
     signal eepState   : eepStateMachine;
     signal iEEPStrobe : std_logic;
-    signal iEEPwait   : std_logic;
+    signal iEEPWait   : std_logic;
     signal iEEPData   : std_logic_vector (8 downto 0);
     
 begin
@@ -94,9 +92,9 @@ begin
                     iEEPWait <= '0';
                     eepState <= eepStateIdle;
                     
-                when others =>
-                    iEEPWait <= '0';
-                    eepState <= eepStateIdle;
+--                when others =>
+--                    iEEPWait <= '0';
+--                    eepState <= eepStateIdle;
 
             end case;
         end if;

@@ -26,43 +26,29 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.SpaceWireRouterIPPackage.all;
+entity SpaceWireRouterIPRam32x256 is
+  port (
+    clock       : in  std_logic;
+    writeData   : in  std_logic_vector (31 downto 0);
+    address     : in  std_logic_vector (7 downto 0);
+    writeEnable : in  std_logic;
+    readData    : out std_logic_vector (31 downto 0));
+end entity SpaceWireRouterIPRam32x256;
 
-entity SpaceWireRouterIPStatisticCounter is
-    port (
-        clock        : in  std_logic;
-        reset        : in  std_logic;
-        counterClear : in  std_logic;
-        countEnable  : in  std_logic;
-        count        : out std_logic_vector (15 downto 0)
-        );
-end SpaceWireRouterIPStatisticCounter;
 
-architecture behavioral of SpaceWireRouterIPStatisticCounter is
-
-    signal iCount : std_logic_vector (15 downto 0);
-
+architecture behavioral of SpaceWireRouterIPRam32x256 is
+  type mem_t is array (0 to 255) of std_logic_vector (31 downto 0);
+  signal mem : mem_t;
 begin
 
-----------------------------------------------------------------------
--- 16Bit counter which counts clock synchronization One Shot Pulse
--- It could count up to 0xFFFF (65534).
-----------------------------------------------------------------------
-    process (clock, reset)
-    begin
-        if (reset = '1') then
-            iCount <= (others => '0');
-        elsif (clock'event and clock = '1') then
-            if (counterClear = '1') then
-                iCount <= (others => '0');
-            elsif (countEnable = '1') then
-                if (iCount /= x"ffff") then
-                    iCount <= iCount + 1;
-                end if;
-            end if;
-        end if;
-    end process;
-
-    count <= iCount;
+  process (clock) is
+  begin  -- process
+    if rising_edge(clock) then
+      readData <= mem(to_integer(unsigned(address)));
+      if writeEnable = '1' then
+        mem(to_integer(unsigned(address))) <= writeData;
+      end if;
+    end if;
+  end process;
 
 end behavioral;

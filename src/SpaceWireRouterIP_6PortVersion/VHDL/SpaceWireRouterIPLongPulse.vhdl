@@ -22,10 +22,9 @@
 -- THE SOFTWARE.
 -------------------------------------------------------------------------------
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
-use IEEE.STD_LOGIC_ARITH.all;
-use IEEE.STD_LOGIC_UNSIGNED.all;
+library ieee;
+use ieee.std_logic_1164.all;
+use work.SpaceWireRouterIPPackage."+";
 
 entity SpaceWireRouterIPLongPulse is
     port (

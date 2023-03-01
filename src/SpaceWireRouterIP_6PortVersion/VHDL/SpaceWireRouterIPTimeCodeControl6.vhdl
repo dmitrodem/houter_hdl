@@ -22,12 +22,9 @@
 -- THE SOFTWARE.
 -------------------------------------------------------------------------------
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
-use IEEE.STD_LOGIC_ARITH.all;
-use IEEE.STD_LOGIC_UNSIGNED.all;
+library ieee;
+use ieee.std_logic_1164.all;
 
-library work;
 use work.SpaceWireRouterIPPackage.all;
 
 entity SpaceWireRouterIPTimeCodeControl6 is
@@ -266,9 +263,9 @@ begin
                 if (iCycleCounter > autoTimeCodeCycleTime) then
                     iCycleCounter   <= (others => '0');
                     iAutoTickIn     <= '1';
-                    iAutoTimeCodeIn <= iAutoTimeCodeIn + '1';
+                    iAutoTimeCodeIn <= iAutoTimeCodeIn + 1;
                 else
-                    iCycleCounter <= iCycleCounter + '1';
+                    iCycleCounter <= iCycleCounter + 1;
                     iAutoTickIn   <= '0';
                     
                 end if;

@@ -22,14 +22,8 @@
 -- THE SOFTWARE.
 -------------------------------------------------------------------------------
 
-library work;
-use work.SpaceWireRouterIPPackage.all;
-
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
-use IEEE.STD_LOGIC_ARITH.all;
-use IEEE.STD_LOGIC_UNSIGNED.all;
-
+library ieee;
+use ieee.std_logic_1164.all;
 
 entity SpaceWireRouterIPRouterRoutingTable32x256 is
     port (
@@ -47,26 +41,6 @@ end SpaceWireRouterIPRouterRoutingTable32x256;
 
 
 architecture behavioral of SpaceWireRouterIPRouterRoutingTable32x256 is
-
-    component SpaceWireRouterIPRam32x256Xilinx is
-        port (
-            clock       : in  std_logic;
-            writeData   : in  std_logic_vector (31 downto 0);
-            address     : in  std_logic_vector (7 downto 0);
-            writeEnable : in  std_logic;
-            readData    : out std_logic_vector (31 downto 0)
-            );
-    end component;
-
-    component SpaceWireRouterIPRam32x256Altera is
-        port (
-            clock       : in  std_logic;
-            writeData   : in  std_logic_vector (31 downto 0);
-            address     : in  std_logic_vector (7 downto 0);
-            writeEnable : in  std_logic;
-            readData    : out std_logic_vector (31 downto 0)
-            );
-    end component;
 
     signal iAcknowledge         : std_logic;
     signal iWriteEnableRegister : std_logic;
@@ -93,29 +67,14 @@ begin
 --------------------------------------------------------------------------------
 -- Routing Table.
 --------------------------------------------------------------------------------
--- Xilinx
-    xilinxRam32x256_generate : if cUseDevice = 1 generate
-        ramXilinx : SpaceWireRouterIPRam32x256Xilinx
-            port map (
-                clock       => clock,
-                writeData   => iWriteData,
-                address     => address,
-                writeEnable => iWriteEnableRegister,
-                readData    => ramDataOut
-                );
-    end generate;
-
--- Altera
-    alteraRam32x256_generate : if cUseDevice = 0 generate
-        ramAltera : SpaceWireRouterIPRam32x256Altera
-            port map (
-                clock       => clock,
-                writeData   => iWriteData,
-                address     => address,
-                writeEnable => iWriteEnableRegister,
-                readData    => ramDataOut
-                );
-    end generate;
+  ram0 : entity work.SpaceWireRouterIPRam32x256
+    port map (
+      clock       => clock,
+      writeData   => iWriteData,
+      address     => address,
+      writeEnable => iWriteEnableRegister,
+      readData    => ramDataOut
+      );
 
     readData <= iReadData;
 
@@ -141,7 +100,7 @@ begin
                     iAcknowledge <= '0';
                     if (strobe = '1') then
                         if (writeEnable = '1') then
-                            iWriteData <= WriteData;
+                            iWriteData <= writeData;
                             iBusState  <= busStateWrite0;
                         else
                             iBusState <= busStateRead0;
@@ -159,22 +118,22 @@ begin
                 ----------------------------------------------------------------------
                 when busStateWrite1 =>
                     if (dataByteEnable (0) = '1') then
-                        iWriteData (7 downto 0) <= WriteData (7 downto 0);
+                        iWriteData (7 downto 0) <= writeData (7 downto 0);
                     else
                         iWriteData (7 downto 0) <= ramDataOut (7 downto 0);
                     end if;
                     if (dataByteEnable (1) = '1') then
-                        iWriteData (15 downto 8) <= WriteData (15 downto 8);
+                        iWriteData (15 downto 8) <= writeData (15 downto 8);
                     else
                         iWriteData (15 downto 8) <= ramDataOut (15 downto 8);
                     end if;
                     if (dataByteEnable (2) = '1') then
-                        iWriteData (23 downto 16) <= WriteData (23 downto 16);
+                        iWriteData (23 downto 16) <= writeData (23 downto 16);
                     else
                         iWriteData (23 downto 16) <= ramDataOut (23 downto 16);
                     end if;
                     if (dataByteEnable (3) = '1') then
-                        iWriteData (31 downto 24) <= WriteData (31 downto 24);
+                        iWriteData (31 downto 24) <= writeData (31 downto 24);
                     else
                         iWriteData (31 downto 24) <= ramDataOut (31 downto 24);
                     end if;
@@ -211,7 +170,7 @@ begin
                 when busStateWait3 =>
                     iBusState <= busStateIdle;
 
-                when others => null;
+                --when others => null;
             end case;
         end if;
     end process;

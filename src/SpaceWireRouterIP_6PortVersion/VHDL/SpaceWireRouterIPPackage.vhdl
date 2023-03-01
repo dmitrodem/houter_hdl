@@ -26,10 +26,9 @@
 -- ]]]
 -- [[[end]]]
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
-use IEEE.STD_LOGIC_ARITH.all;
-use IEEE.STD_LOGIC_UNSIGNED.all;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 package SpaceWireRouterIPPackage is
 
@@ -83,7 +82,8 @@ package SpaceWireRouterIPPackage is
         select0, select1, select2, select3, select4, select5, select6 : std_logic_vector (8 downto 0)
         ) return std_logic_vector;
     -- [[[end]]]
-
+    function "+" (d : std_logic_vector; i : integer) return std_logic_vector;
+    function "-" (d : std_logic_vector; i : integer) return std_logic_vector;
 end SpaceWireRouterIPPackage;
 
 package body SpaceWireRouterIPPackage is
@@ -165,5 +165,12 @@ package body SpaceWireRouterIPPackage is
         end if;
     end select7x1xVector9;
     -- [[[end]]]
-
+    function "+" (d : std_logic_vector; i : integer) return std_logic_vector is
+    begin
+      return std_logic_vector(unsigned(d) + i);
+    end;
+    function "-" (d : std_logic_vector; i : integer) return std_logic_vector is
+    begin
+      return std_logic_vector(unsigned(d) - i);
+    end;
 end SpaceWireRouterIPPackage;

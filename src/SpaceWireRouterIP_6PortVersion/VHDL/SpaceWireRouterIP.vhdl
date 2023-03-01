@@ -25,15 +25,12 @@
 -- n = int(nports) + 1
 -- ]]]
 -- [[[end]]]
-library work;
 use work.SpaceWireRouterIPPackage.all;
 use work.SpaceWireCODECIPPackage.all;
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
-use IEEE.STD_LOGIC_ARITH.all;
-use IEEE.STD_LOGIC_UNSIGNED.all;
-
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 entity SpaceWireRouterIP is
     generic (
@@ -434,6 +431,10 @@ begin
                                   readyOut (5),
                                   readyOut (6));
                                   -- [[[end]]]
+    end generate;
+
+    spx1 : for i in 0 to gNumberOfInternalPort - 1 generate
+    begin
         iRequestIn (i) <= select7x1(iSwitchPortNumber (i),
                                     -- [[[cog
                                     -- a = ",\n".join([f"requestOut ({i})" for i in range(0, int(nports)+1)])
@@ -447,6 +448,10 @@ begin
                                     requestOut (5),
                                     requestOut (6));
                                     -- [[[end]]]
+    end generate;
+
+    spx2 : for i in 0 to gNumberOfInternalPort - 1 generate
+    begin
         iSorcePortIn (i) <= select7x1xVector8(iSwitchPortNumber (i),
                                               -- [[[cog
                                               -- a = ",\n".join([f"sorcePortrOut ({i})" for i in range(0, int(nports)+1)])
@@ -460,6 +465,11 @@ begin
                                               sorcePortrOut (5),
                                               sorcePortrOut (6));
                                               -- [[[end]]]
+    end generate;
+
+    spx3 : for i in 0 to gNumberOfInternalPort - 1 generate
+    begin
+
         iDataIn (i) <= select7x1xVector9(iSwitchPortNumber (i),
                                         -- [[[cog
                                         -- a = ",\n".join([f"dataOut ({i})" for i in range(0, int(nports)+1)])
@@ -473,6 +483,11 @@ begin
                                         dataOut (5),
                                         dataOut (6));
                                         -- [[[end]]]
+    end generate;
+
+    spx4 : for i in 0 to gNumberOfInternalPort - 1 generate
+    begin
+
         iStrobeIn (i) <= select7x1(iSwitchPortNumber (i),
                                    -- [[[cog
                                    -- a = ",\n".join([f"strobeOut ({i})" for i in range(0, int(nports)+1)])
@@ -486,6 +501,11 @@ begin
                                    strobeOut (5),
                                    strobeOut (6));
                                    -- [[[end]]]
+    end generate;
+
+    spx5 : for i in 0 to gNumberOfInternalPort - 1 generate
+    begin
+
         iTimeOutEEPIn (i) <= select7x1(iSwitchPortNumber (i),
                                        -- [[[cog
                                        -- a = ",\n".join([f"timeOutEEPOut ({i})" for i in range(0, int(nports)+1)])
@@ -499,7 +519,7 @@ begin
                                        timeOutEEPOut (5),
                                        timeOutEEPOut (6));
                                        -- [[[end]]]
-    end generate spx;
+    end generate;
 
 ----------------------------------------------------------------------
 -- SpaceWirePort LinkUP Signal.
@@ -1363,10 +1383,17 @@ begin
 -- Timing adjustment.
 -- BusSlaveAccessSelector.
 ----------------------------------------------------------------------
-    process(clock)
+    process(reset, clock)
     begin
-        if (clock'event and clock = '1') then
-
+        if (reset = '1') then
+          iBusSlaveStrobeIn       <= '0';
+          iBusSlaveAddressIn      <= (others => '0');
+          iBusSlaveByteEnableIn   <= (others => '0');
+          iBusSlaveWriteEnableIn  <= '0';
+          iBusSlaveOriginalPortIn <= (others => '0');
+          iBusSlaveDataIn         <= (others => '0');
+          busMasterAcknowledgeIn  <= (others => '0');
+        elsif (clock'event and clock = '1') then
             if (
               -- [[[cog
               -- a = " or\n".join([f"busMasterRequestOut({i}) = '1'" for i in range(0, int(nports)+1)])

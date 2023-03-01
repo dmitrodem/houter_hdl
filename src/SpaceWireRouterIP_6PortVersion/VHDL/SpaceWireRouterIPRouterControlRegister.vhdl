@@ -31,11 +31,9 @@ use work.SpaceWireRouterIPConfigurationPackage.all;
 use work.SpaceWireRouterIPPackage.all;
 use work.SpaceWireCODECIPPackage.all;
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
-use IEEE.STD_LOGIC_ARITH.all;
-use IEEE.STD_LOGIC_UNSIGNED.all;
-
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 entity SpaceWireRouterIPRouterControlRegister is
     port (
@@ -841,7 +839,7 @@ begin
                     iErrorStatusClear5 <= '0';
                     iErrorStatusClear6 <= '0';
                     -- [[[end]]]
-                    iBusState          <= busStatewait0;
+                    iBusState          <= busStateWait0;
 
                     ----------------------------------------------------------------------
                     -- Write Register Select.
@@ -1024,16 +1022,16 @@ begin
                     iDropCouterClear                            <= '0';
                     iStatisticalInformationReceiveClearRegister <= '0';
                     iAcknowledgeOut                             <= '0';
-                    iBusState                                   <= busStatewait0;
+                    iBusState                                   <= busStateWait0;
 
                     ----------------------------------------------------------------------
                     -- Write Register Wait.
                     ----------------------------------------------------------------------                                               
-                when busStatewait0 =>
-                    iBusState <= busStatewait1;
-                when busStatewait1 =>
+                when busStateWait0 =>
+                    iBusState <= busStateWait1;
+                when busStateWait1 =>
                     iBusState <= busStateIdle;
-                when others => null;
+                -- when others => null;
             end case;
         end if;
     end process;
