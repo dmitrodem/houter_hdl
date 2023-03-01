@@ -34,6 +34,8 @@ use ieee.numeric_std.all;
 
 entity SpaceWireRouterIP is
     generic (
+        clkfreq : real;
+        txclkfreq : real;
         gNumberOfInternalPort : integer := cNumberOfInternalPort
         );
     port (
@@ -622,7 +624,7 @@ begin
     -- [[[cog
     -- tpl = """
     -- port{i:02} : entity work.SpaceWireRouterIPSpaceWirePort
-    --     generic map (gNumberOfInternalPort => x"{i:02x}", gNumberOfExternalPort => cNumberOfExternalPort)
+    --     generic map (clkfreq => clkfreq, txclkfreq => txclkfreq,  gNumberOfInternalPort => x"{i:02x}", gNumberOfExternalPort => cNumberOfExternalPort)
     --     port map (
     --         clock                       => clock,
     --         transmitClock               => transmitClock,
@@ -688,7 +690,7 @@ begin
     -- ]]]
 
     port01 : entity work.SpaceWireRouterIPSpaceWirePort
-        generic map (gNumberOfInternalPort => x"01", gNumberOfExternalPort => cNumberOfExternalPort)
+        generic map (clkfreq => clkfreq, txclkfreq => txclkfreq,  gNumberOfInternalPort => x"01", gNumberOfExternalPort => cNumberOfExternalPort)
         port map (
             clock                       => clock,
             transmitClock               => transmitClock,
@@ -751,7 +753,7 @@ begin
 
 
     port02 : entity work.SpaceWireRouterIPSpaceWirePort
-        generic map (gNumberOfInternalPort => x"02", gNumberOfExternalPort => cNumberOfExternalPort)
+        generic map (clkfreq => clkfreq, txclkfreq => txclkfreq,  gNumberOfInternalPort => x"02", gNumberOfExternalPort => cNumberOfExternalPort)
         port map (
             clock                       => clock,
             transmitClock               => transmitClock,
@@ -814,7 +816,7 @@ begin
 
 
     port03 : entity work.SpaceWireRouterIPSpaceWirePort
-        generic map (gNumberOfInternalPort => x"03", gNumberOfExternalPort => cNumberOfExternalPort)
+        generic map (clkfreq => clkfreq, txclkfreq => txclkfreq,  gNumberOfInternalPort => x"03", gNumberOfExternalPort => cNumberOfExternalPort)
         port map (
             clock                       => clock,
             transmitClock               => transmitClock,
@@ -877,7 +879,7 @@ begin
 
 
     port04 : entity work.SpaceWireRouterIPSpaceWirePort
-        generic map (gNumberOfInternalPort => x"04", gNumberOfExternalPort => cNumberOfExternalPort)
+        generic map (clkfreq => clkfreq, txclkfreq => txclkfreq,  gNumberOfInternalPort => x"04", gNumberOfExternalPort => cNumberOfExternalPort)
         port map (
             clock                       => clock,
             transmitClock               => transmitClock,
@@ -940,7 +942,7 @@ begin
 
 
     port05 : entity work.SpaceWireRouterIPSpaceWirePort
-        generic map (gNumberOfInternalPort => x"05", gNumberOfExternalPort => cNumberOfExternalPort)
+        generic map (clkfreq => clkfreq, txclkfreq => txclkfreq,  gNumberOfInternalPort => x"05", gNumberOfExternalPort => cNumberOfExternalPort)
         port map (
             clock                       => clock,
             transmitClock               => transmitClock,
@@ -1003,7 +1005,7 @@ begin
 
 
     port06 : entity work.SpaceWireRouterIPSpaceWirePort
-        generic map (gNumberOfInternalPort => x"06", gNumberOfExternalPort => cNumberOfExternalPort)
+        generic map (clkfreq => clkfreq, txclkfreq => txclkfreq,  gNumberOfInternalPort => x"06", gNumberOfExternalPort => cNumberOfExternalPort)
         port map (
             clock                       => clock,
             transmitClock               => transmitClock,

@@ -33,6 +33,8 @@ use work.SpaceWireCODECIPPackage.all;
 
 entity SpaceWireRouterIPSpaceWirePort is
     generic (
+        clkfreq : real;
+        txclkfreq : real;
         gNumberOfInternalPort : std_logic_vector (7 downto 0);
         gNumberOfExternalPort : std_logic_vector (7 downto 0));
     port (
@@ -176,6 +178,9 @@ begin
     end process;
 
     SpaceWireCODEC : entity work.SpaceWireCODECIP
+        generic map (
+          clkfreq => clkfreq,
+          txclkfreq => txclkfreq)
         port map (
             -- Clock & Reset.
             clock                       => clock,

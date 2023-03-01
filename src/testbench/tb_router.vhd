@@ -29,9 +29,22 @@ end entity tb_router;
 architecture behav of tb_router is
 
   constant sysfreq   : real := 100.0e6;
-  constant txclkfreq : real := sysfreq;
+
+  constant RT_SYSCLK_FREQ : real := 50.0e6;
+  constant RT_TXCLK_FREQ  : real := 100.0e6;
+  constant RT_RXCLK_FREQ  : real := 166.6e6;
 
   constant T : time := (1.0/sysfreq) * (1.0e3 ms);
+
+  constant Tsys : time := (1.0e3 ms) / RT_SYSCLK_FREQ;
+  constant Ttx  : time := (1.0e3 ms) / RT_TXCLK_FREQ;
+  constant Trx  : time := (1.0e3 ms) / RT_RXCLK_FREQ;
+
+  -- [[[cog
+  -- print(f"constant N_PORTS : integer := {n-1};")
+  -- ]]]
+  constant N_PORTS : integer := 6;
+  -- [[[end]]]
 
   -- [[[cog
   -- for i in range(0, n-1):
@@ -47,6 +60,8 @@ architecture behav of tb_router is
 
   signal clk          : std_logic;
   signal rst          : std_logic;
+
+  signal clk_sys, clk_tx, clk_rx : std_logic;
   -- [[[cog
   -- for i in range(0, n-1):
   --   print(f"signal autostart_{i}  : std_logic := '0';")
@@ -81,192 +96,192 @@ architecture behav of tb_router is
   --   print(f"signal spw_do_{i}     : std_logic := '0';")
   --   print(f"signal spw_so_{i}     : std_logic := '0';")
   -- ]]]
-  signal autostart_0  : std_logic                     := '0';
-  signal linkstart_0  : std_logic                     := '0';
-  signal linkdis_0    : std_logic                     := '0';
+  signal autostart_0  : std_logic := '0';
+  signal linkstart_0  : std_logic := '0';
+  signal linkdis_0    : std_logic := '0';
   signal txdivcnt_0   : std_logic_vector (7 downto 0) := (others => '0');
-  signal tick_in_0    : std_logic                     := '0';
+  signal tick_in_0    : std_logic := '0';
   signal ctrl_in_0    : std_logic_vector (1 downto 0) := (others => '0');
   signal time_in_0    : std_logic_vector (5 downto 0) := (others => '0');
-  signal txwrite_0    : std_logic                     := '0';
-  signal txflag_0     : std_logic                     := '0';
+  signal txwrite_0    : std_logic := '0';
+  signal txflag_0     : std_logic := '0';
   signal txdata_0     : std_logic_vector (7 downto 0) := (others => '0');
-  signal txrdy_0      : std_logic                     := '0';
-  signal txhalff_0    : std_logic                     := '0';
-  signal tick_out_0   : std_logic                     := '0';
+  signal txrdy_0      : std_logic := '0';
+  signal txhalff_0    : std_logic := '0';
+  signal tick_out_0   : std_logic := '0';
   signal ctrl_out_0   : std_logic_vector (1 downto 0) := (others => '0');
   signal time_out_0   : std_logic_vector (5 downto 0) := (others => '0');
-  signal rxvalid_0    : std_logic                     := '0';
-  signal rxhalff_0    : std_logic                     := '0';
-  signal rxflag_0     : std_logic                     := '0';
+  signal rxvalid_0    : std_logic := '0';
+  signal rxhalff_0    : std_logic := '0';
+  signal rxflag_0     : std_logic := '0';
   signal rxdata_0     : std_logic_vector (7 downto 0) := (others => '0');
-  signal rxread_0     : std_logic                     := '0';
-  signal started_0    : std_logic                     := '0';
-  signal connecting_0 : std_logic                     := '0';
-  signal running_0    : std_logic                     := '0';
-  signal errdisc_0    : std_logic                     := '0';
-  signal errpar_0     : std_logic                     := '0';
-  signal erresc_0     : std_logic                     := '0';
-  signal errcred_0    : std_logic                     := '0';
-  signal spw_di_0     : std_logic                     := '0';
-  signal spw_si_0     : std_logic                     := '0';
-  signal spw_do_0     : std_logic                     := '0';
-  signal spw_so_0     : std_logic                     := '0';
-  signal autostart_1  : std_logic                     := '0';
-  signal linkstart_1  : std_logic                     := '0';
-  signal linkdis_1    : std_logic                     := '0';
+  signal rxread_0     : std_logic := '0';
+  signal started_0    : std_logic := '0';
+  signal connecting_0 : std_logic := '0';
+  signal running_0    : std_logic := '0';
+  signal errdisc_0    : std_logic := '0';
+  signal errpar_0     : std_logic := '0';
+  signal erresc_0     : std_logic := '0';
+  signal errcred_0    : std_logic := '0';
+  signal spw_di_0     : std_logic := '0';
+  signal spw_si_0     : std_logic := '0';
+  signal spw_do_0     : std_logic := '0';
+  signal spw_so_0     : std_logic := '0';
+  signal autostart_1  : std_logic := '0';
+  signal linkstart_1  : std_logic := '0';
+  signal linkdis_1    : std_logic := '0';
   signal txdivcnt_1   : std_logic_vector (7 downto 0) := (others => '0');
-  signal tick_in_1    : std_logic                     := '0';
+  signal tick_in_1    : std_logic := '0';
   signal ctrl_in_1    : std_logic_vector (1 downto 0) := (others => '0');
   signal time_in_1    : std_logic_vector (5 downto 0) := (others => '0');
-  signal txwrite_1    : std_logic                     := '0';
-  signal txflag_1     : std_logic                     := '0';
+  signal txwrite_1    : std_logic := '0';
+  signal txflag_1     : std_logic := '0';
   signal txdata_1     : std_logic_vector (7 downto 0) := (others => '0');
-  signal txrdy_1      : std_logic                     := '0';
-  signal txhalff_1    : std_logic                     := '0';
-  signal tick_out_1   : std_logic                     := '0';
+  signal txrdy_1      : std_logic := '0';
+  signal txhalff_1    : std_logic := '0';
+  signal tick_out_1   : std_logic := '0';
   signal ctrl_out_1   : std_logic_vector (1 downto 0) := (others => '0');
   signal time_out_1   : std_logic_vector (5 downto 0) := (others => '0');
-  signal rxvalid_1    : std_logic                     := '0';
-  signal rxhalff_1    : std_logic                     := '0';
-  signal rxflag_1     : std_logic                     := '0';
+  signal rxvalid_1    : std_logic := '0';
+  signal rxhalff_1    : std_logic := '0';
+  signal rxflag_1     : std_logic := '0';
   signal rxdata_1     : std_logic_vector (7 downto 0) := (others => '0');
-  signal rxread_1     : std_logic                     := '0';
-  signal started_1    : std_logic                     := '0';
-  signal connecting_1 : std_logic                     := '0';
-  signal running_1    : std_logic                     := '0';
-  signal errdisc_1    : std_logic                     := '0';
-  signal errpar_1     : std_logic                     := '0';
-  signal erresc_1     : std_logic                     := '0';
-  signal errcred_1    : std_logic                     := '0';
-  signal spw_di_1     : std_logic                     := '0';
-  signal spw_si_1     : std_logic                     := '0';
-  signal spw_do_1     : std_logic                     := '0';
-  signal spw_so_1     : std_logic                     := '0';
-  signal autostart_2  : std_logic                     := '0';
-  signal linkstart_2  : std_logic                     := '0';
-  signal linkdis_2    : std_logic                     := '0';
+  signal rxread_1     : std_logic := '0';
+  signal started_1    : std_logic := '0';
+  signal connecting_1 : std_logic := '0';
+  signal running_1    : std_logic := '0';
+  signal errdisc_1    : std_logic := '0';
+  signal errpar_1     : std_logic := '0';
+  signal erresc_1     : std_logic := '0';
+  signal errcred_1    : std_logic := '0';
+  signal spw_di_1     : std_logic := '0';
+  signal spw_si_1     : std_logic := '0';
+  signal spw_do_1     : std_logic := '0';
+  signal spw_so_1     : std_logic := '0';
+  signal autostart_2  : std_logic := '0';
+  signal linkstart_2  : std_logic := '0';
+  signal linkdis_2    : std_logic := '0';
   signal txdivcnt_2   : std_logic_vector (7 downto 0) := (others => '0');
-  signal tick_in_2    : std_logic                     := '0';
+  signal tick_in_2    : std_logic := '0';
   signal ctrl_in_2    : std_logic_vector (1 downto 0) := (others => '0');
   signal time_in_2    : std_logic_vector (5 downto 0) := (others => '0');
-  signal txwrite_2    : std_logic                     := '0';
-  signal txflag_2     : std_logic                     := '0';
+  signal txwrite_2    : std_logic := '0';
+  signal txflag_2     : std_logic := '0';
   signal txdata_2     : std_logic_vector (7 downto 0) := (others => '0');
-  signal txrdy_2      : std_logic                     := '0';
-  signal txhalff_2    : std_logic                     := '0';
-  signal tick_out_2   : std_logic                     := '0';
+  signal txrdy_2      : std_logic := '0';
+  signal txhalff_2    : std_logic := '0';
+  signal tick_out_2   : std_logic := '0';
   signal ctrl_out_2   : std_logic_vector (1 downto 0) := (others => '0');
   signal time_out_2   : std_logic_vector (5 downto 0) := (others => '0');
-  signal rxvalid_2    : std_logic                     := '0';
-  signal rxhalff_2    : std_logic                     := '0';
-  signal rxflag_2     : std_logic                     := '0';
+  signal rxvalid_2    : std_logic := '0';
+  signal rxhalff_2    : std_logic := '0';
+  signal rxflag_2     : std_logic := '0';
   signal rxdata_2     : std_logic_vector (7 downto 0) := (others => '0');
-  signal rxread_2     : std_logic                     := '0';
-  signal started_2    : std_logic                     := '0';
-  signal connecting_2 : std_logic                     := '0';
-  signal running_2    : std_logic                     := '0';
-  signal errdisc_2    : std_logic                     := '0';
-  signal errpar_2     : std_logic                     := '0';
-  signal erresc_2     : std_logic                     := '0';
-  signal errcred_2    : std_logic                     := '0';
-  signal spw_di_2     : std_logic                     := '0';
-  signal spw_si_2     : std_logic                     := '0';
-  signal spw_do_2     : std_logic                     := '0';
-  signal spw_so_2     : std_logic                     := '0';
-  signal autostart_3  : std_logic                     := '0';
-  signal linkstart_3  : std_logic                     := '0';
-  signal linkdis_3    : std_logic                     := '0';
+  signal rxread_2     : std_logic := '0';
+  signal started_2    : std_logic := '0';
+  signal connecting_2 : std_logic := '0';
+  signal running_2    : std_logic := '0';
+  signal errdisc_2    : std_logic := '0';
+  signal errpar_2     : std_logic := '0';
+  signal erresc_2     : std_logic := '0';
+  signal errcred_2    : std_logic := '0';
+  signal spw_di_2     : std_logic := '0';
+  signal spw_si_2     : std_logic := '0';
+  signal spw_do_2     : std_logic := '0';
+  signal spw_so_2     : std_logic := '0';
+  signal autostart_3  : std_logic := '0';
+  signal linkstart_3  : std_logic := '0';
+  signal linkdis_3    : std_logic := '0';
   signal txdivcnt_3   : std_logic_vector (7 downto 0) := (others => '0');
-  signal tick_in_3    : std_logic                     := '0';
+  signal tick_in_3    : std_logic := '0';
   signal ctrl_in_3    : std_logic_vector (1 downto 0) := (others => '0');
   signal time_in_3    : std_logic_vector (5 downto 0) := (others => '0');
-  signal txwrite_3    : std_logic                     := '0';
-  signal txflag_3     : std_logic                     := '0';
+  signal txwrite_3    : std_logic := '0';
+  signal txflag_3     : std_logic := '0';
   signal txdata_3     : std_logic_vector (7 downto 0) := (others => '0');
-  signal txrdy_3      : std_logic                     := '0';
-  signal txhalff_3    : std_logic                     := '0';
-  signal tick_out_3   : std_logic                     := '0';
+  signal txrdy_3      : std_logic := '0';
+  signal txhalff_3    : std_logic := '0';
+  signal tick_out_3   : std_logic := '0';
   signal ctrl_out_3   : std_logic_vector (1 downto 0) := (others => '0');
   signal time_out_3   : std_logic_vector (5 downto 0) := (others => '0');
-  signal rxvalid_3    : std_logic                     := '0';
-  signal rxhalff_3    : std_logic                     := '0';
-  signal rxflag_3     : std_logic                     := '0';
+  signal rxvalid_3    : std_logic := '0';
+  signal rxhalff_3    : std_logic := '0';
+  signal rxflag_3     : std_logic := '0';
   signal rxdata_3     : std_logic_vector (7 downto 0) := (others => '0');
-  signal rxread_3     : std_logic                     := '0';
-  signal started_3    : std_logic                     := '0';
-  signal connecting_3 : std_logic                     := '0';
-  signal running_3    : std_logic                     := '0';
-  signal errdisc_3    : std_logic                     := '0';
-  signal errpar_3     : std_logic                     := '0';
-  signal erresc_3     : std_logic                     := '0';
-  signal errcred_3    : std_logic                     := '0';
-  signal spw_di_3     : std_logic                     := '0';
-  signal spw_si_3     : std_logic                     := '0';
-  signal spw_do_3     : std_logic                     := '0';
-  signal spw_so_3     : std_logic                     := '0';
-  signal autostart_4  : std_logic                     := '0';
-  signal linkstart_4  : std_logic                     := '0';
-  signal linkdis_4    : std_logic                     := '0';
+  signal rxread_3     : std_logic := '0';
+  signal started_3    : std_logic := '0';
+  signal connecting_3 : std_logic := '0';
+  signal running_3    : std_logic := '0';
+  signal errdisc_3    : std_logic := '0';
+  signal errpar_3     : std_logic := '0';
+  signal erresc_3     : std_logic := '0';
+  signal errcred_3    : std_logic := '0';
+  signal spw_di_3     : std_logic := '0';
+  signal spw_si_3     : std_logic := '0';
+  signal spw_do_3     : std_logic := '0';
+  signal spw_so_3     : std_logic := '0';
+  signal autostart_4  : std_logic := '0';
+  signal linkstart_4  : std_logic := '0';
+  signal linkdis_4    : std_logic := '0';
   signal txdivcnt_4   : std_logic_vector (7 downto 0) := (others => '0');
-  signal tick_in_4    : std_logic                     := '0';
+  signal tick_in_4    : std_logic := '0';
   signal ctrl_in_4    : std_logic_vector (1 downto 0) := (others => '0');
   signal time_in_4    : std_logic_vector (5 downto 0) := (others => '0');
-  signal txwrite_4    : std_logic                     := '0';
-  signal txflag_4     : std_logic                     := '0';
+  signal txwrite_4    : std_logic := '0';
+  signal txflag_4     : std_logic := '0';
   signal txdata_4     : std_logic_vector (7 downto 0) := (others => '0');
-  signal txrdy_4      : std_logic                     := '0';
-  signal txhalff_4    : std_logic                     := '0';
-  signal tick_out_4   : std_logic                     := '0';
+  signal txrdy_4      : std_logic := '0';
+  signal txhalff_4    : std_logic := '0';
+  signal tick_out_4   : std_logic := '0';
   signal ctrl_out_4   : std_logic_vector (1 downto 0) := (others => '0');
   signal time_out_4   : std_logic_vector (5 downto 0) := (others => '0');
-  signal rxvalid_4    : std_logic                     := '0';
-  signal rxhalff_4    : std_logic                     := '0';
-  signal rxflag_4     : std_logic                     := '0';
+  signal rxvalid_4    : std_logic := '0';
+  signal rxhalff_4    : std_logic := '0';
+  signal rxflag_4     : std_logic := '0';
   signal rxdata_4     : std_logic_vector (7 downto 0) := (others => '0');
-  signal rxread_4     : std_logic                     := '0';
-  signal started_4    : std_logic                     := '0';
-  signal connecting_4 : std_logic                     := '0';
-  signal running_4    : std_logic                     := '0';
-  signal errdisc_4    : std_logic                     := '0';
-  signal errpar_4     : std_logic                     := '0';
-  signal erresc_4     : std_logic                     := '0';
-  signal errcred_4    : std_logic                     := '0';
-  signal spw_di_4     : std_logic                     := '0';
-  signal spw_si_4     : std_logic                     := '0';
-  signal spw_do_4     : std_logic                     := '0';
-  signal spw_so_4     : std_logic                     := '0';
-  signal autostart_5  : std_logic                     := '0';
-  signal linkstart_5  : std_logic                     := '0';
-  signal linkdis_5    : std_logic                     := '0';
+  signal rxread_4     : std_logic := '0';
+  signal started_4    : std_logic := '0';
+  signal connecting_4 : std_logic := '0';
+  signal running_4    : std_logic := '0';
+  signal errdisc_4    : std_logic := '0';
+  signal errpar_4     : std_logic := '0';
+  signal erresc_4     : std_logic := '0';
+  signal errcred_4    : std_logic := '0';
+  signal spw_di_4     : std_logic := '0';
+  signal spw_si_4     : std_logic := '0';
+  signal spw_do_4     : std_logic := '0';
+  signal spw_so_4     : std_logic := '0';
+  signal autostart_5  : std_logic := '0';
+  signal linkstart_5  : std_logic := '0';
+  signal linkdis_5    : std_logic := '0';
   signal txdivcnt_5   : std_logic_vector (7 downto 0) := (others => '0');
-  signal tick_in_5    : std_logic                     := '0';
+  signal tick_in_5    : std_logic := '0';
   signal ctrl_in_5    : std_logic_vector (1 downto 0) := (others => '0');
   signal time_in_5    : std_logic_vector (5 downto 0) := (others => '0');
-  signal txwrite_5    : std_logic                     := '0';
-  signal txflag_5     : std_logic                     := '0';
+  signal txwrite_5    : std_logic := '0';
+  signal txflag_5     : std_logic := '0';
   signal txdata_5     : std_logic_vector (7 downto 0) := (others => '0');
-  signal txrdy_5      : std_logic                     := '0';
-  signal txhalff_5    : std_logic                     := '0';
-  signal tick_out_5   : std_logic                     := '0';
+  signal txrdy_5      : std_logic := '0';
+  signal txhalff_5    : std_logic := '0';
+  signal tick_out_5   : std_logic := '0';
   signal ctrl_out_5   : std_logic_vector (1 downto 0) := (others => '0');
   signal time_out_5   : std_logic_vector (5 downto 0) := (others => '0');
-  signal rxvalid_5    : std_logic                     := '0';
-  signal rxhalff_5    : std_logic                     := '0';
-  signal rxflag_5     : std_logic                     := '0';
+  signal rxvalid_5    : std_logic := '0';
+  signal rxhalff_5    : std_logic := '0';
+  signal rxflag_5     : std_logic := '0';
   signal rxdata_5     : std_logic_vector (7 downto 0) := (others => '0');
-  signal rxread_5     : std_logic                     := '0';
-  signal started_5    : std_logic                     := '0';
-  signal connecting_5 : std_logic                     := '0';
-  signal running_5    : std_logic                     := '0';
-  signal errdisc_5    : std_logic                     := '0';
-  signal errpar_5     : std_logic                     := '0';
-  signal erresc_5     : std_logic                     := '0';
-  signal errcred_5    : std_logic                     := '0';
-  signal spw_di_5     : std_logic                     := '0';
-  signal spw_si_5     : std_logic                     := '0';
-  signal spw_do_5     : std_logic                     := '0';
-  signal spw_so_5     : std_logic                     := '0';
+  signal rxread_5     : std_logic := '0';
+  signal started_5    : std_logic := '0';
+  signal connecting_5 : std_logic := '0';
+  signal running_5    : std_logic := '0';
+  signal errdisc_5    : std_logic := '0';
+  signal errpar_5     : std_logic := '0';
+  signal erresc_5     : std_logic := '0';
+  signal errcred_5    : std_logic := '0';
+  signal spw_di_5     : std_logic := '0';
+  signal spw_si_5     : std_logic := '0';
+  signal spw_do_5     : std_logic := '0';
+  signal spw_so_5     : std_logic := '0';
   -- [[[end]]]
 
 
@@ -274,7 +289,7 @@ begin  -- architecture behav
   -- link{i}: entity work.spwstream
   --   generic map (
   --     sysfreq         => sysfreq,
-  --     txclkfreq       => txclkfreq,
+  --     txclkfreq       => sysfreq,
   --     rximpl          => impl_generic,
   --     rxchunk         => 1,
   --     tximpl          => impl_generic,
@@ -323,7 +338,7 @@ begin  -- architecture behav
   -- generic map (
   --   name      => "e{i}",
   --   sysfreq   => sysfreq,
-  --   txclkfreq => txclkfreq)
+  --   txclkfreq => sysfreq)
   -- port map (
   --   clk    => clk,
   --   rst    => rst,
@@ -335,85 +350,88 @@ begin  -- architecture behav
   -- for i in range(0, n-1):
   --   print(tmpl.format(i = i))
   -- ]]]
-  link0 : entity work.spw_actor
-    generic map (
-      name      => "e0",
-      sysfreq   => sysfreq,
-      txclkfreq => txclkfreq)
-    port map (
-      clk    => clk,
-      rst    => rst,
-      spw_di => spw_di_0,
-      spw_si => spw_si_0,
-      spw_do => spw_do_0,
-      spw_so => spw_so_0);
-  link1 : entity work.spw_actor
-    generic map (
-      name      => "e1",
-      sysfreq   => sysfreq,
-      txclkfreq => txclkfreq)
-    port map (
-      clk    => clk,
-      rst    => rst,
-      spw_di => spw_di_1,
-      spw_si => spw_si_1,
-      spw_do => spw_do_1,
-      spw_so => spw_so_1);
-  link2 : entity work.spw_actor
-    generic map (
-      name      => "e2",
-      sysfreq   => sysfreq,
-      txclkfreq => txclkfreq)
-    port map (
-      clk    => clk,
-      rst    => rst,
-      spw_di => spw_di_2,
-      spw_si => spw_si_2,
-      spw_do => spw_do_2,
-      spw_so => spw_so_2);
-  link3 : entity work.spw_actor
-    generic map (
-      name      => "e3",
-      sysfreq   => sysfreq,
-      txclkfreq => txclkfreq)
-    port map (
-      clk    => clk,
-      rst    => rst,
-      spw_di => spw_di_3,
-      spw_si => spw_si_3,
-      spw_do => spw_do_3,
-      spw_so => spw_so_3);
-  link4 : entity work.spw_actor
-    generic map (
-      name      => "e4",
-      sysfreq   => sysfreq,
-      txclkfreq => txclkfreq)
-    port map (
-      clk    => clk,
-      rst    => rst,
-      spw_di => spw_di_4,
-      spw_si => spw_si_4,
-      spw_do => spw_do_4,
-      spw_so => spw_so_4);
-  link5 : entity work.spw_actor
-    generic map (
-      name      => "e5",
-      sysfreq   => sysfreq,
-      txclkfreq => txclkfreq)
-    port map (
-      clk    => clk,
-      rst    => rst,
-      spw_di => spw_di_5,
-      spw_si => spw_si_5,
-      spw_do => spw_do_5,
-      spw_so => spw_so_5);
+  link0: entity work.spw_actor
+  generic map (
+    name      => "e0",
+    sysfreq   => sysfreq,
+    txclkfreq => sysfreq)
+  port map (
+    clk    => clk,
+    rst    => rst,
+    spw_di => spw_di_0,
+    spw_si => spw_si_0,
+    spw_do => spw_do_0,
+    spw_so => spw_so_0);
+  link1: entity work.spw_actor
+  generic map (
+    name      => "e1",
+    sysfreq   => sysfreq,
+    txclkfreq => sysfreq)
+  port map (
+    clk    => clk,
+    rst    => rst,
+    spw_di => spw_di_1,
+    spw_si => spw_si_1,
+    spw_do => spw_do_1,
+    spw_so => spw_so_1);
+  link2: entity work.spw_actor
+  generic map (
+    name      => "e2",
+    sysfreq   => sysfreq,
+    txclkfreq => sysfreq)
+  port map (
+    clk    => clk,
+    rst    => rst,
+    spw_di => spw_di_2,
+    spw_si => spw_si_2,
+    spw_do => spw_do_2,
+    spw_so => spw_so_2);
+  link3: entity work.spw_actor
+  generic map (
+    name      => "e3",
+    sysfreq   => sysfreq,
+    txclkfreq => sysfreq)
+  port map (
+    clk    => clk,
+    rst    => rst,
+    spw_di => spw_di_3,
+    spw_si => spw_si_3,
+    spw_do => spw_do_3,
+    spw_so => spw_so_3);
+  link4: entity work.spw_actor
+  generic map (
+    name      => "e4",
+    sysfreq   => sysfreq,
+    txclkfreq => sysfreq)
+  port map (
+    clk    => clk,
+    rst    => rst,
+    spw_di => spw_di_4,
+    spw_si => spw_si_4,
+    spw_do => spw_do_4,
+    spw_so => spw_so_4);
+  link5: entity work.spw_actor
+  generic map (
+    name      => "e5",
+    sysfreq   => sysfreq,
+    txclkfreq => sysfreq)
+  port map (
+    clk    => clk,
+    rst    => rst,
+    spw_di => spw_di_5,
+    spw_si => spw_si_5,
+    spw_do => spw_do_5,
+    spw_so => spw_so_5);
   -- [[[end]]]
 
   router0 : entity work.SpaceWireRouterIP
+    generic map (
+      clkfreq => RT_SYSCLK_FREQ,
+      txclkfreq => RT_TXCLK_FREQ)
     port map (
-      clock                       => clk,
-      transmitClock               => clk,
-      receiveClock                => clk,
+      clock                       => clk_sys,
+      transmitClock               => clk_tx,
+      receiveClock                => clk_rx,
       reset                       => rst,
       -- [[[cog
       -- for i in range(1, n):
@@ -491,6 +509,62 @@ begin  -- architecture behav
     wait;
   end process generate_clock;
 
+  -- [[[cog
+  -- tmpl = """
+  -- generate_{name}_clock: process is
+  -- begin
+  --   clk_{name} <= '0';
+  --   wait for 10*T{name};
+  --   while true loop
+  --     clk_{name} <= '1';
+  --     wait for 0.5*T{name};
+  --     clk_{name} <= '0';
+  --     wait for 0.5*T{name};
+  --   end loop;
+  --   wait;
+  -- end process;
+  -- """.strip()
+  -- for name in ["sys", "tx", "rx"]:
+  --   print(tmpl.format(name = name))
+  -- ]]]
+  generate_sys_clock: process is
+  begin
+    clk_sys <= '0';
+    wait for 10*Tsys;
+    while true loop
+      clk_sys <= '1';
+      wait for 0.5*Tsys;
+      clk_sys <= '0';
+      wait for 0.5*Tsys;
+    end loop;
+    wait;
+  end process;
+  generate_tx_clock: process is
+  begin
+    clk_tx <= '0';
+    wait for 10*Ttx;
+    while true loop
+      clk_tx <= '1';
+      wait for 0.5*Ttx;
+      clk_tx <= '0';
+      wait for 0.5*Ttx;
+    end loop;
+    wait;
+  end process;
+  generate_rx_clock: process is
+  begin
+    clk_rx <= '0';
+    wait for 10*Trx;
+    while true loop
+      clk_rx <= '1';
+      wait for 0.5*Trx;
+      clk_rx <= '0';
+      wait for 0.5*Trx;
+    end loop;
+    wait;
+  end process;
+  -- [[[end]]]
+
   sim : process is
     procedure ensure (
       signal s   : in std_logic;
@@ -517,31 +591,31 @@ begin  -- architecture behav
     end protected;
 
     type rmap_hdr_t is protected body
-                                   variable r : integer_array_t;
-                                 variable crc : crc_t;
-                                 procedure init is
-                                 begin
-                                   crc.init;
-                                   r := new_1d(0, 8, false);
-                                 end;
-    procedure append (d : std_logic_vector (7 downto 0)) is
-    begin
-      crc.update(d);
-      append(r, to_integer(unsigned(d)));
-    end;
-    procedure finalize is
-    begin
-      crc.finalize;
-      append(r, crc.get);
-    end;
-    impure function get(i : integer) return std_logic_vector is
-    begin
-      return std_logic_vector(to_unsigned(get(r, i), 8));
-    end;
-    impure function length return integer is
-    begin
-      return r.length;
-    end;
+      variable r : integer_array_t;
+      variable crc : crc_t;
+      procedure init is
+      begin
+        crc.init;
+        r := new_1d(0, 8, false);
+      end;
+      procedure append (d : std_logic_vector (7 downto 0)) is
+      begin
+        crc.update(d);
+        append(r, to_integer(unsigned(d)));
+      end;
+      procedure finalize is
+      begin
+        crc.finalize;
+        append(r, crc.get);
+      end;
+      impure function get(i : integer) return std_logic_vector is
+      begin
+        return std_logic_vector(to_unsigned(get(r, i), 8));
+      end;
+      impure function length return integer is
+      begin
+        return r.length;
+      end;
   end protected body;
 
   variable rmap_hdr    : rmap_hdr_t;
@@ -879,17 +953,29 @@ begin  -- architecture behav
           unsubscribe(self, dst_link);
         end loop;  -- tier
       elsif run("Stress test") then
-        for link_idx in 0 to 5 loop
-          enable_link(find("e" & integer'image(link_idx)));
+        rst <= '1';
+        for link_idx in 0 to N_PORTS-1 loop
+             msg := new_msg(spw_type_linkctl);
+             push(msg, std_logic_vector'("110"));
+             send(net, find("e" & integer'image(link_idx)), msg);
+             delete(msg);
+        end loop;  -- link_idx
+        rst <= '0';
+
+        for link_idx in 0 to N_PORTS-1 loop
+          msg := new_msg(spw_type_pollrunning);
+          send(net, find("e" & integer'image(link_idx)), msg);
+          receive_reply(net, msg, msgr);
+          check(message_type(msgr) = spw_type_pollrunning_reply);
         end loop;  -- link_idx
 
-        for link_idx in 0 to 5 loop
+        for link_idx in 0 to N_PORTS-1 loop
           subscribers(link_idx) := new_actor("sub" & integer'image(link_idx));
           subscribe(subscribers(link_idx), find("e" & integer'image(link_idx)));
         end loop;  -- link_idx
 
-        for src in 0 to 5 loop
-          for dst in 0 to 5 loop
+        for src in 0 to N_PORTS-1 loop
+          for dst in 0 to N_PORTS-1 loop
             txpackets(src)(dst) := new_1d;
             append(txpackets(src)(dst), dst + 1);  -- physical addressing
             append(txpackets(src)(dst), src + 1);  -- keep source port number
@@ -904,13 +990,14 @@ begin  -- architecture behav
             for i in 0 to txpackets(src)(dst).length - 1 loop
               push(msg, std_logic_vector(to_unsigned(get(txpackets(src)(dst), i), 8)));
             end loop;  -- i
+            log("Sending packet [" & integer'image(src) & "] -> [" & integer'image(dst) & "] = " & hex_image(txpackets(src)(dst)));
             send(net, find("e" & integer'image(src)), msg);
             delete(msg);
           end loop;  -- dst
         end loop;  -- src
 
-        for src in 0 to 5 loop
-          for dst in 0 to 5 loop
+        for src in 0 to N_PORTS-1 loop
+          for dst in 0 to N_PORTS-1 loop
             rxpackets(src)(dst) := new_1d;
             receive(net, subscribers(src), msg);
             while not is_empty(msg) loop
@@ -920,22 +1007,22 @@ begin  -- architecture behav
           end loop;  -- dst
         end loop;  -- src
 
-        for src in 0 to 5 loop
-          for dst in 0 to 5 loop
+        for src in 0 to N_PORTS-1 loop
+          for dst in 0 to N_PORTS-1 loop
             txpacket  := txpackets(src)(dst);
             dst_index := get(txpacket, 0) - 1;
             src_index := get(txpacket, 1) - 1;
-            for src1 in 0 to 5 loop
+            for src1 in 0 to N_PORTS-1 loop
               if get(rxpackets(dst_index)(src1), 0) = src_index + 1 then
                 rxpacket := rxpackets(dst_index)(src1);
-                log("[ " & integer'image(src) & " -> " & integer'image(dst) & "] " &
-                    boolean'image(txpacket.length = rxpacket.length + 1) & " " &
-                    "TX = " & hex_image(txpacket) & ", RX = " & hex_image(rxpacket));
-              -- check_equal(txpacket.length, rxpacket.length + 1);  -- 1 byte for
-              --                                                     -- physical addressing
-              -- for i in 0 to rxpacket.length - 1 loop
-              --   check_equal(get(txpacket, i+1), get(rxpacket, i));
-              -- end loop;  -- i
+                debug("[ " & integer'image(src) & " -> " & integer'image(dst) & "] " &
+                      boolean'image(txpacket.length = rxpacket.length + 1) & " " &
+                      "TX = " & hex_image(txpacket) & ", RX = " & hex_image(rxpacket));
+                check_equal(txpacket.length, rxpacket.length + 1);  -- 1 byte for
+                                                                    -- physical addressing
+                for i in 0 to rxpacket.length - 1 loop
+                  check_equal(get(txpacket, i+1), get(rxpacket, i));
+                end loop;  -- i
               end if;
             end loop;  -- src1
           end loop;  -- dst

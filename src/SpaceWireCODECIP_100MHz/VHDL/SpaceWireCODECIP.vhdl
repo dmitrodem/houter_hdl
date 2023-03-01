@@ -30,8 +30,8 @@ use work.SpaceWireCODECIPPackage.all;
 
 entity SpaceWireCODECIP is
   generic (
-    clkfreq   : real := 100.0e6;
-    txclkfreq : real := 100.0e6);
+    clkfreq   : real;
+    txclkfreq : real);
   port (
     clock                       : in  std_logic;
     transmitClock               : in  std_logic;
