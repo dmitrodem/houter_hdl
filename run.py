@@ -6,8 +6,10 @@ sys.path.insert(0, (Path(__file__).parent / "submodules" / "vunit").as_posix())
 from vunit import VUnit, about
 import vunit
 
+
+print(sys.path)
 print(about.VERSION)
-raise Exception(vunit.__file__)
+print(vunit.__file__)
 
 
 ROOT = Path(__file__).parent / "src"
