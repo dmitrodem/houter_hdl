@@ -22,15 +22,14 @@
 -- THE SOFTWARE.
 -------------------------------------------------------------------------------
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
-use IEEE.STD_LOGIC_ARITH.all;
-use IEEE.STD_LOGIC_UNSIGNED.all;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 entity SpaceWireCODECIPTimer is
     generic (
-        gTimer6p4usValue  : integer := 640;
-        gTimer12p8usValue : integer := 1280
+        gTimer6p4usValue  : integer;
+        gTimer12p8usValue : integer
         );
     port (
         clock            : in  std_logic;
@@ -45,11 +44,10 @@ end SpaceWireCODECIPTimer;
 architecture Behavioral of SpaceWireCODECIPTimer is
 
     signal iTimerState12p8us : std_logic;
-    signal iTimerCount6p4us  : std_logic_vector (9 downto 0);
-    signal iTimerCount12p8us : std_logic_vector (10 downto 0);
+    signal iTimerCount6p4us  : unsigned (15 downto 0);
+    signal iTimerCount12p8us : unsigned (15 downto 0);
     signal iAfter6p4us       : std_logic;
     signal iAfter12p8us      : std_logic;
-
 
 begin
 
@@ -58,7 +56,7 @@ begin
 
 ----------------------------------------------------------------------
 -- ECSS-E-ST-50-12C  8.4.7 Timer.
--- The timer provides the After 6.4 us and After 12.8 us timeouts used 
+-- The timer provides the After 6.4 us and After 12.8 us timeouts used
 -- in link initialization.
 ----------------------------------------------------------------------
 
@@ -109,5 +107,5 @@ begin
             end if;
         end if;
     end process;
-    
+
 end Behavioral;

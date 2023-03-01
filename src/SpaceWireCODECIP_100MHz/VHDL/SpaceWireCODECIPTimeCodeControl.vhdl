@@ -22,10 +22,9 @@
 -- THE SOFTWARE.
 -------------------------------------------------------------------------------
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
-use IEEE.STD_LOGIC_ARITH.all;
-use IEEE.STD_LOGIC_UNSIGNED.all;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 entity SpaceWireCODECIPTimeCodeControl is
 
@@ -44,28 +43,17 @@ end SpaceWireCODECIPTimeCodeControl;
 
 architecture Behavioral of SpaceWireCODECIPTimeCodeControl is
 
-
-    component SpaceWireCODECIPSynchronizeOnePulse is
-        port (
-            clock             : in  std_logic;
-            asynchronousClock : in  std_logic;
-            reset             : in  std_logic;
-            asynchronousIn    : in  std_logic;
-            synchronizedOut   : out std_logic
-            );
-    end component;
-
-    signal iReceiveTimeCodeOutRegister : std_logic_vector (7 downto 0);
-    signal iControlFlags               : std_logic_vector(1 downto 0);
-    signal iReceiveTimeCode            : std_logic_vector(5 downto 0);
-    signal iReceiveTimeCodePlus1       : std_logic_vector(5 downto 0);
+    signal iReceiveTimeCodeOutRegister : unsigned (7 downto 0);
+    signal iControlFlags               : unsigned (1 downto 0);
+    signal iReceiveTimeCode            : unsigned (5 downto 0);
+    signal iReceiveTimeCodePlus1       : unsigned (5 downto 0);
     signal iTickOutSignal              : std_logic;
     signal gotTimeCodeSynchronized     : std_logic;
 
 begin
 
-    timeOut         <= iReceiveTimeCode;
-    controlFlagsOut <= iControlFlags;
+    timeOut         <= std_logic_vector(iReceiveTimeCode);
+    controlFlagsOut <= std_logic_vector(iControlFlags);
     tickOut         <= iTickOutSignal;
 
 ----------------------------------------------------------------------
@@ -94,12 +82,12 @@ begin
                 else
                     iTickOutSignal <= '0';
                 end if;
-                iReceiveTimeCodeOutRegister <= receiveTimeCodeOut;
+                iReceiveTimeCodeOutRegister <= unsigned(receiveTimeCodeOut);
             end if;
         end if;
     end process;
 
-    timeCodePulse : SpaceWireCODECIPSynchronizeOnePulse
+    timeCodePulse : entity work.SpaceWireCODECIPSynchronizeOnePulse
         port map (
             clock             => clock,
             asynchronousClock => receiveClock,
@@ -109,5 +97,3 @@ begin
             );
 
 end Behavioral;
-
-

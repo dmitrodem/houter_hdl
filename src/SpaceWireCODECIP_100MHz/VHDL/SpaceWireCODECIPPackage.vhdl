@@ -22,18 +22,14 @@
 -- THE SOFTWARE.
 -------------------------------------------------------------------------------
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
+library ieee;
+use ieee.std_logic_1164.all;
 
 package SpaceWireCODECIPPackage is
 
 --------------------------------------------------------------------------------
 --  Declare constants.
 --------------------------------------------------------------------------------
-    constant gDisconnectCountValue               : integer range 0 to 255        := 141;       -- transmitClock period * gDisconnectCountValue = 850ns.
-    constant gTimer6p4usValue                    : integer range 0 to 1023       := 320;       -- Clock period * gTimer6p4usValue = 6.4us.
-    constant gTimer12p8usValue                   : integer range 0 to 2047       := 640;       -- Clock period * gTimer12p8usValue = 12.8us.
-    constant gInitializeTransmitClockDivideValue : std_logic_vector (5 downto 0) := "001001";  -- transmitClock frequency / (gInitializeTransmitClockDivideValue + 1) = 10MHz.
 
     type bit32X8Array is array (7 downto 0) of std_logic_vector (31 downto 0);
 

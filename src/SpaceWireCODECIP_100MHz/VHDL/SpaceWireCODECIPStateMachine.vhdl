@@ -22,14 +22,12 @@
 -- THE SOFTWARE.
 -------------------------------------------------------------------------------
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
-use IEEE.STD_LOGIC_ARITH.all;
-use IEEE.STD_LOGIC_UNSIGNED.all;
+library ieee;
+use ieee.std_logic_1164.all;
 
 entity SpaceWireCODECIPStateMachine is
     port (
-        Clock                         : in  std_logic;
+        clock                         : in  std_logic;
         receiveClock                  : in  std_logic;
         reset                         : in  std_logic;
         after12p8us                   : in  std_logic;
@@ -65,16 +63,6 @@ end SpaceWireCODECIPStateMachine;
 
 architecture Behavioral of SpaceWireCODECIPStateMachine is
 
-    component SpaceWireCODECIPSynchronizeOnePulse is
-        port (
-            clock             : in  std_logic;
-            asynchronousClock : in  std_logic;
-            reset             : in  std_logic;
-            asynchronousIn    : in  std_logic;
-            synchronizedOut   : out std_logic
-            );
-    end component;
-
     type linkStateMachine is (
         linkStateErrorReset,
         linkStateErrorWait,
@@ -106,39 +94,39 @@ architecture Behavioral of SpaceWireCODECIPStateMachine is
     signal iLinkDownTransition      : std_logic;
     signal iLinkUpEnable            : std_logic;
     signal creditSynchronize        : std_logic;
-    
+
 begin
 
-    gotNullPulse : SpaceWireCODECIPSynchronizeOnePulse
+    gotNullPulse : entity work.SpaceWireCODECIPSynchronizeOnePulse
         port map (
-            clock             => Clock,
+            clock             => clock,
             asynchronousClock => receiveClock,
             reset             => reset,
             asynchronousIn    => gotNull,
             synchronizedOut   => gotNullSynchronize
             );
 
-    gotFCTPulse : SpaceWireCODECIPSynchronizeOnePulse
+    gotFCTPulse : entity work.SpaceWireCODECIPSynchronizeOnePulse
         port map (
-            clock             => Clock,
+            clock             => clock,
             asynchronousClock => receiveClock,
             reset             => reset,
             asynchronousIn    => gotFCT,
             synchronizedOut   => gotFCTSynchronize
             );
 
-    gotTimeCodePulse : SpaceWireCODECIPSynchronizeOnePulse
+    gotTimeCodePulse : entity work.SpaceWireCODECIPSynchronizeOnePulse
         port map (
-            clock             => Clock,
+            clock             => clock,
             asynchronousClock => receiveClock,
             reset             => reset,
             asynchronousIn    => gotTimeCode,
             synchronizedOut   => gotTimeCodeSynchronize
             );
 
-    gotNCharacterPulse : SpaceWireCODECIPSynchronizeOnePulse
+    gotNCharacterPulse : entity work.SpaceWireCODECIPSynchronizeOnePulse
         port map (
-            clock             => Clock,
+            clock             => clock,
             asynchronousClock => receiveClock,
             reset             => reset,
             asynchronousIn    => gotNCharacter,
@@ -147,9 +135,9 @@ begin
 
     iAsynchronousError <= receiveErrorsSynchronize;  --
 
-    errorPulse : SpaceWireCODECIPSynchronizeOnePulse
+    errorPulse : entity work.SpaceWireCODECIPSynchronizeOnePulse
         port map (
-            clock             => Clock,
+            clock             => clock,
             asynchronousClock => receiveClock,
             reset             => reset,
             asynchronousIn    => receiveError,
@@ -178,7 +166,7 @@ begin
 -- ECSS-E-ST-50-12C 8.5.3.7 RxErr.
 -- ECSS-E-ST-50-12C 8.5.3.8 CreditError.
 ----------------------------------------------------------------------
-    process (Clock, reset, creditError)
+    process (clock, reset, creditError)
     begin
         if (reset = '1' or creditError = '1') then
             linkState               <= linkStateErrorReset;
@@ -195,8 +183,8 @@ begin
             iLinkDownTransition     <= '0';
             iLinkUpTransition       <= '0';
             iLinkUpEnable           <= '0';
-            
-        elsif (Clock'event and Clock = '1') then
+
+        elsif (clock'event and clock = '1') then
             case linkState is
 
                 ----------------------------------------------------------------------
@@ -259,9 +247,9 @@ begin
                 -- ECSS-E-ST-50-12C 8.5.2.4 Ready.
                 -- The state machine shall wait in the Ready state until the [Link Enabled]
                 -- guard becomes true and then it shall move on into the Started state.
-                -- If, while in the Ready state, a disconnection error is detected, or if 
-                -- after thegotNULL condition is set, a parity error or escape error occurs, 
-                -- or any character other than a NULL is received, then the state machine 
+                -- If, while in the Ready state, a disconnection error is detected, or if
+                -- after thegotNULL condition is set, a parity error or escape error occurs,
+                -- or any character other than a NULL is received, then the state machine
                 -- shall move to the ErrorReset state.
                 ----------------------------------------------------------------------
                 when linkStateReady =>
@@ -285,8 +273,8 @@ begin
                 -- ECSS-E-ST-50-12C 8.5.2.5 Started.
                 -- The state machine shall move to the Connecting state if the gotNULL
                 -- condition is set.
-                -- If, while in the Started state, a disconnection error is detected, or if 
-                -- after the gotNULL condition is set, a parity error or escape error occurs, 
+                -- If, while in the Started state, a disconnection error is detected, or if
+                -- after the gotNULL condition is set, a parity error or escape error occurs,
                 -- or any character other than a NULL is received, then the state machine shall
                 -- move to the ErrorReset state.
                 ----------------------------------------------------------------------
@@ -319,9 +307,9 @@ begin
                 -- ECSS-E-ST-50-12C 8.5.2.6 Connecting
                 -- If an FCT is received (gotFCT condition true) the state machine shall
                 -- move to the Run state.
-                -- If, while in the Connecting state, a disconnect error, parity error or 
-                -- escape error is detected, or if any character other than NULL or 
-                -- FCT is received, then the state machine shall move to the ErrorReset 
+                -- If, while in the Connecting state, a disconnect error, parity error or
+                -- escape error is detected, or if any character other than NULL or
+                -- FCT is received, then the state machine shall move to the ErrorReset
                 -- state.
                 ----------------------------------------------------------------------
                 when linkStateConnecting =>
@@ -349,7 +337,7 @@ begin
 
                 ----------------------------------------------------------------------
                 -- ECSS-E-ST-50-12C 8.5.2.7 Run
-                -- In the Run state the receiver is enabled and the transmitter is 
+                -- In the Run state the receiver is enabled and the transmitter is
                 -- enabled to send Time-Codes, FCTs, N-Chars and NULLs.
                 -- If  a disconnection error, parity error, ESC error occur, then the state machine
                 -- shall move to the ErrorResetState.
@@ -372,7 +360,7 @@ begin
                         linkState        <= linkStateErrorReset;
 
                     end if;
-                when others => null;
+                --when others => null;
             end case;
         end if;
     end process;

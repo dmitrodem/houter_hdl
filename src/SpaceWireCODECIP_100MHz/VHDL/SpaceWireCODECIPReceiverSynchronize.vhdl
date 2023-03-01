@@ -22,13 +22,13 @@
 -- THE SOFTWARE.
 -------------------------------------------------------------------------------
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
-use IEEE.STD_LOGIC_UNSIGNED.all;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 entity SpaceWireCODECIPReceiverSynchronize is
     generic (
-        gDisconnectCountValue : integer := 141
+        gDisconnectCountValue : integer
         );
     port (
         spaceWireStrobeIn       : in  std_logic;
@@ -60,13 +60,13 @@ architecture RTL of SpaceWireCODECIPReceiverSynchronize is
     signal iParity                 : std_logic;
     signal iESCFlag                : std_logic;
     signal iSpaceWireSynchronize   : std_logic_vector(1 downto 0);
-    signal iBitCount               : std_logic_vector(3 downto 0);
-    signal iLinkTimeOutCounter     : std_logic_vector (7 downto 0);
+    signal iBitCount               : unsigned (3 downto 0);
+    signal iLinkTimeOutCounter     : unsigned (15 downto 0);
     signal iDisconnectErrorOut     : std_logic;
     signal iParityErrorOut         : std_logic;
     signal iEscapeErrorOut         : std_logic;
     signal iCommandFlag, iDataFlag : std_logic;
-    
+
     type spaceWireStateMachine is (
         spaceWireIdel,
         spaceWireOff,
@@ -218,19 +218,19 @@ begin
                         iDisconnectErrorOut <= '1';
                     end if;
                 elsif (spaceWireState = spaceWireIdel) then
-                    iLinkTimeOutCounter <= X"00";
-                    
+                    iLinkTimeOutCounter <= (others => '0');
+
                 elsif (spaceWireState = spaceWireOdd1 or spaceWireState = spaceWireEven1 or spaceWireState = spaceWireOdd0 or spaceWireState = spaceWireEven0) then
-                    iLinkTimeOutCounter <= X"00";
+                    iLinkTimeOutCounter <= (others => '0');
                 end if;
             else
                 iDisconnectErrorOut <= '0';
-                iLinkTimeOutCounter <= X"00";
+                iLinkTimeOutCounter <= (others => '0');
             end if;
             ----------------------------------------------------------------------
             -- ECSS-E-ST-50-12C 4.4 Character level
             -- ECSS-E-ST-50-12C 7.2 Data characters
-            -- Discriminate the data character or the  the control character by the Data 
+            -- Discriminate the data character or the  the control character by the Data
             -- Control Flag.
             ----------------------------------------------------------------------
             if(enableReceive = '1')then
@@ -245,7 +245,7 @@ begin
                 iCommandFlag <= '0'; iDataFlag <= '0';
             end if;
             ----------------------------------------------------------------------
-            -- Increment bit of character corresponding by state transition of 
+            -- Increment bit of character corresponding by state transition of
             -- spaceWireState.
             ----------------------------------------------------------------------
             if(enableReceive = '1' and iEscapeErrorOut = '0' and iDisconnectErrorOut = '0')then
@@ -266,7 +266,7 @@ begin
 
             ----------------------------------------------------------------------
             -- ECSS-E-ST-50-12C 7.3 Control characters and control codes.
-            -- Discriminate  Data character, Control code and Time corde, and write to 
+            -- Discriminate  Data character, Control code and Time corde, and write to
             -- Receive buffer
             ----------------------------------------------------------------------
             if(enableReceive = '1')then
@@ -281,11 +281,11 @@ begin
                             iReceiveFIFOWriteEnable <= '1';
                         end if;
                     elsif (iCommandFlag = '1') then
-						if (iDataRegister (7 downto 6) = "10") then     --EOP
-							iReceiveDataOut <= '1' & "00000000";
-						elsif (iDataRegister (7 downto 6) = "01") then  --EEP
-							iReceiveDataOut <= '1' & "00000001";
-						end if;
+                                                if (iDataRegister (7 downto 6) = "10") then     --EOP
+                                                        iReceiveDataOut <= '1' & "00000000";
+                                                elsif (iDataRegister (7 downto 6) = "01") then  --EEP
+                                                        iReceiveDataOut <= '1' & "00000001";
+                                                end if;
 
                         if ((iESCFlag /= '1') and (iDataRegister (7 downto 6) = "10" or iDataRegister (7 downto 6) = "01")) then
                             --EOP EEP Receive.
@@ -318,7 +318,7 @@ begin
                                 else
                                     iReceiveFCTOut <= '1';
                                 end if;
-                                
+
                             when "11" =>  -- ESC Receive.
                                 if (iESCFlag = '1') then
                                     iEscapeErrorOut <= '1';
@@ -375,7 +375,7 @@ begin
                     iEscapeErrorOut          <= '0';
                     iESCFlag                 <= '0';
                 end if;
-                
+
             else
                 iReceiverDataValidOut    <= '0';
                 iReceiveTimeCodeValidOut <= '0';

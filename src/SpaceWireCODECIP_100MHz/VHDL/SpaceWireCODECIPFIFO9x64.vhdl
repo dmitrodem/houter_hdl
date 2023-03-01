@@ -22,10 +22,9 @@
 -- THE SOFTWARE.
 -------------------------------------------------------------------------------
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
-use IEEE.STD_LOGIC_ARITH.all;
-use IEEE.STD_LOGIC_UNSIGNED.all;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 entity SpaceWireCODECIPFIFO9x64 is
     port (
@@ -39,7 +38,8 @@ entity SpaceWireCODECIPFIFO9x64 is
         empty          : out std_logic;
         full           : out std_logic;
         readDataCount  : out std_logic_vector(5 downto 0);
-        writeDataCount : out std_logic_vector(5 downto 0)
+        writeDataCount : out std_logic_vector(5 downto 0);
+        testen         : in  std_logic
         );
 
 end SpaceWireCODECIPFIFO9x64;
@@ -49,7 +49,7 @@ architecture RTL of SpaceWireCODECIPFIFO9x64 is
     type   turnMemory is array(0 to 63) of std_logic_vector(8 downto 0);
     signal dpram : turnMemory;
 
-    type turnTable is array(0 to 63) of std_logic_vector(5 downto 0);
+    type turnTable is array(0 to 63) of unsigned(5 downto 0);
 
     constant binaryToGray : turnTable := (
         "000000", "000001", "000011", "000010",
@@ -87,33 +87,33 @@ architecture RTL of SpaceWireCODECIPFIFO9x64 is
         "101111", "101110", "101100", "101101",
         "101000", "101001", "101011", "101010");
 
-    signal iWriteReset        : std_logic;
-    signal iReadReset         : std_logic;
+    signal iWriteReset, xWriteReset : std_logic;
+    signal iReadReset, xReadReset   : std_logic;
     signal iWriteResetTime    : std_logic_vector(1 downto 0);
     signal iReadResetTime     : std_logic_vector(1 downto 0);
-    signal iWritePointer      : std_logic_vector(5 downto 0);
-    signal iGrayWritePointer  : std_logic_vector(5 downto 0);
-    signal iGrayWritePointer1 : std_logic_vector(5 downto 0);
-    signal iGrayWritePointer2 : std_logic_vector(5 downto 0);
-    signal iGrayWritePointer3 : std_logic_vector(5 downto 0);
-    signal iWritePointer4     : std_logic_vector(5 downto 0);
-    signal iReadPointer       : std_logic_vector(5 downto 0);
-    signal iGrayReadPointer   : std_logic_vector(5 downto 0);
-    signal iGrayReadPointer1  : std_logic_vector(5 downto 0);
-    signal iGrayReadPointer2  : std_logic_vector(5 downto 0);
-    signal iReadPointer3      : std_logic_vector(5 downto 0);
-    signal iWriteDataCount    : std_logic_vector(5 downto 0);
+    signal iWritePointer      : unsigned(5 downto 0);
+    signal iGrayWritePointer  : unsigned(5 downto 0);
+    signal iGrayWritePointer1 : unsigned(5 downto 0);
+    signal iGrayWritePointer2 : unsigned(5 downto 0);
+    signal iGrayWritePointer3 : unsigned(5 downto 0);
+    signal iWritePointer4     : unsigned(5 downto 0);
+    signal iReadPointer       : unsigned(5 downto 0);
+    signal iGrayReadPointer   : unsigned(5 downto 0);
+    signal iGrayReadPointer1  : unsigned(5 downto 0);
+    signal iGrayReadPointer2  : unsigned(5 downto 0);
+    signal iReadPointer3      : unsigned(5 downto 0);
+    signal iWriteDataCount    : unsigned(5 downto 0);
     signal iFull              : std_logic;
     signal iReadDataOut       : std_logic_vector(8 downto 0);
-    signal iReadDataCount     : std_logic_vector(5 downto 0);
+    signal iReadDataCount     : unsigned(5 downto 0);
     signal iEmpty             : std_logic;
 
 begin
 
-    writeDataCount <= iWriteDataCount;
+    writeDataCount <= std_logic_vector(iWriteDataCount);
     full           <= iFull;
     empty          <= iEmpty;
-    readDataCount  <= iReadDataCount;
+    readDataCount  <= std_logic_vector(iReadDataCount);
     readDataOut    <= iReadDataOut;
 
 ----------------------------------------------------------------------
@@ -123,13 +123,14 @@ begin
     begin
         if (reset = '1') then
             iWriteResetTime <= "11";
-            iWriteReset     <= '1';
+            xWriteReset     <= '1';
         elsif (writeClock'event and writeClock = '1') then
             iWriteResetTime <= iWriteResetTime(0) & reset;
-            iWriteReset     <= iWriteResetTime(1);
+            xWriteReset     <= iWriteResetTime(1);
         end if;
     end process;
 
+    iWriteReset <= reset when testen = '1' else xWriteReset;
 ----------------------------------------------------------------------
 -- Write pointer of the buffer.
 ----------------------------------------------------------------------
@@ -153,7 +154,7 @@ begin
     begin
         if (writeClock'event and writeClock = '1') then
             if (writeEnable = '1') then
-                dpram(conv_integer(iWritePointer)) <= writeDataIn;
+                dpram(to_integer(iWritePointer)) <= writeDataIn;
             end if;
         end if;
     end process;
@@ -167,7 +168,7 @@ begin
             if (iWriteReset = '1') then
                 iGrayWritePointer <= "000000";
             else
-                iGrayWritePointer <= binaryToGray(conv_integer(iWritePointer));
+                iGrayWritePointer <= binaryToGray(to_integer(iWritePointer));
             end if;
         end if;
     end process;
@@ -187,7 +188,7 @@ begin
             else
                 iGrayReadPointer1 <= iGrayReadPointer;
                 iGrayReadPointer2 <= iGrayReadPointer1;
-                iReadPointer3     <= grayToBinary(conv_integer(iGrayReadPointer2));
+                iReadPointer3     <= grayToBinary(to_integer(iGrayReadPointer2));
             end if;
         end if;
     end process;
@@ -195,7 +196,7 @@ begin
 ----------------------------------------------------------------------
 -- Convert gray code Writepointer to binary Writepointer to calculate readDataCount and empty.
 ----------------------------------------------------------------------
-    process(iReadReset, readClock)
+    process(readClock)
     begin
         if (readClock'event and readClock = '1') then
             if (iReadReset = '1') then
@@ -207,7 +208,7 @@ begin
                 iGrayWritePointer1 <= iGrayWritePointer;
                 iGrayWritePointer2 <= iGrayWritePointer1;
                 iGrayWritePointer3 <= iGrayWritePointer2;
-                iWritePointer4     <= grayToBinary(conv_integer(iGrayWritePointer3));
+                iWritePointer4     <= grayToBinary(to_integer(iGrayWritePointer3));
             end if;
         end if;
     end process;
@@ -220,7 +221,7 @@ begin
         if (readClock'event and readClock = '1') then
             if(iEmpty = '0')then
                 if (readEnable = '1') then
-                    iReadDataOut <= dpram(conv_integer(iReadPointer));
+                    iReadDataOut <= dpram(to_integer(iReadPointer));
                 end if;
             end if;
         end if;
@@ -231,7 +232,7 @@ begin
 ----------------------------------------------------------------------
 -- Read pointer of the buffer.
 ----------------------------------------------------------------------
-    process(iReadReset, readClock)
+    process(readClock)
     begin
         if (readClock'event and readClock = '1') then
             if (iReadReset = '1') then
@@ -247,13 +248,13 @@ begin
 ----------------------------------------------------------------------
 -- Change to Gray code.
 ----------------------------------------------------------------------
-    process(iReadReset, readClock)
+    process(readClock)
     begin
         if (readClock'event and readClock = '1') then
             if (iReadReset = '1') then
                 iGrayReadPointer <= "000000";
             else
-                iGrayReadPointer <= binaryToGray(conv_integer(iReadPointer));
+                iGrayReadPointer <= binaryToGray(to_integer(iReadPointer));
             end if;
         end if;
     end process;
@@ -270,11 +271,12 @@ begin
     begin
         if (reset = '1') then
             iReadResetTime <= "11";
-            iReadReset     <= '1';
+            xReadReset     <= '1';
         elsif (readClock'event and readClock = '1') then
             iReadResetTime <= iReadResetTime(0) & reset;
-            iReadReset     <= iReadResetTime(1);
+            xReadReset     <= iReadResetTime(1);
         end if;
     end process;
 
+    iReadReset <= reset when testen = '1' else xReadReset;
 end RTL;
