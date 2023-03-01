@@ -1,16 +1,20 @@
 #!/usr/bin/env python3
 
-import sys
 from pathlib import Path
-
-sys.path.append((Path(__file__).parent / "submodules" / "vunit").as_posix())
-
-from vunit import VUnit
+try:
+    from vunit import VUnit
+except ModuleNotFoundError:
+    import sys
+    sys.path.append((Path(__file__).parent / "submodules" / "vunit").as_posix())
+    from vunit import VUnit
 
 ROOT = Path(__file__).parent / "src"
 
 VU = VUnit.from_argv(compile_builtins = False)
-VU.add_vhdl_builtins()
+try:
+    VU.add_vhdl_builtins()
+except AttributeError:
+    pass
 VU.add_osvvm()
 VU.add_random()
 VU.add_com()
