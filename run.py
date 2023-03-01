@@ -3,7 +3,12 @@
 from pathlib import Path
 import sys
 sys.path.insert(0, (Path(__file__).parent / "submodules" / "vunit").as_posix())
-from vunit import VUnit
+from vunit import VUnit, about
+import vunit
+
+print(about.VERSION)
+raise Exception(vunit.__file__)
+
 
 ROOT = Path(__file__).parent / "src"
 
