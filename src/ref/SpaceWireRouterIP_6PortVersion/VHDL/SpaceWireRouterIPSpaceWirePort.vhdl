@@ -383,7 +383,7 @@ begin
                         busState <= busStateRoutingTable1;
                     end if;
                 ----------------------------------------------------------------------
-                --@ECSS-E-ST-50-12C 10.6.3 Logical addressing
+                -- ECSS-E-ST-50-12C 10.6.3 Logical addressing
                 -- Request to the data which read from a routing table.
                 ----------------------------------------------------------------------
                 when busStateRoutingTable1 =>
