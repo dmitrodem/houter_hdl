@@ -1,6 +1,5 @@
 library ieee;
-use ieee.std_logic_1164.all;
-
+context ieee.ieee_std_context;
 library vunit_lib;
 context vunit_lib.vunit_context;
 
@@ -8,8 +7,10 @@ package rmap_crc is
   type crc_t is protected
     procedure init;
     procedure update(d : std_logic_vector (7 downto 0));
+    procedure update(d : integer range 0 to 255);
     procedure finalize;
     impure function get return std_logic_vector;
+    impure function get return integer;
   end protected;
 
   procedure crc_test;
@@ -46,6 +47,11 @@ package body rmap_crc is
       r := v;
     end procedure update;
 
+    procedure update(d : integer range 0 to 255) is
+    begin
+      update(std_logic_vector(to_unsigned(d, 8)));
+    end procedure;
+
     procedure finalize is
       variable v : std_logic_vector (7 downto 0);
     begin
@@ -59,34 +65,44 @@ package body rmap_crc is
     begin
       return r;
     end function get;
+
+    impure function get return integer is
+    begin
+      return to_integer(unsigned(r));
+    end function get;
+
   end protected body;
 
   procedure crc_test is
     variable crc : crc_t;
+    variable r : integer range 0 to 255;
   begin  -- procedure crc_test
     crc.init;
-    crc.update(x"01"); crc.update(x"02"); crc.update(x"03"); crc.update(x"04");
-    crc.update(x"05"); crc.update(x"06"); crc.update(x"07"); crc.update(x"08");
+    crc.update(16#01#); crc.update(16#02#); crc.update(16#03#); crc.update(16#04#);
+    crc.update(16#05#); crc.update(16#06#); crc.update(16#07#); crc.update(16#08#);
     crc.finalize;
-    check_equal(crc.get, std_logic_vector'(x"b0"));
+    r := crc.get;
+    vunit_lib.check_pkg.check_equal(16#b0#, r);
 
     crc.init;
-    crc.update(x"53"); crc.update(x"70"); crc.update(x"61"); crc.update(x"63");
-    crc.update(x"65"); crc.update(x"57"); crc.update(x"69"); crc.update(x"72");
-    crc.update(x"65"); crc.update(x"20"); crc.update(x"69"); crc.update(x"73");
-    crc.update(x"20"); crc.update(x"62"); crc.update(x"65"); crc.update(x"61");
-    crc.update(x"75"); crc.update(x"74"); crc.update(x"69"); crc.update(x"66");
-    crc.update(x"75"); crc.update(x"6c"); crc.update(x"21"); crc.update(x"21");
+    crc.update(16#53#); crc.update(16#70#); crc.update(16#61#); crc.update(16#63#);
+    crc.update(16#65#); crc.update(16#57#); crc.update(16#69#); crc.update(16#72#);
+    crc.update(16#65#); crc.update(16#20#); crc.update(16#69#); crc.update(16#73#);
+    crc.update(16#20#); crc.update(16#62#); crc.update(16#65#); crc.update(16#61#);
+    crc.update(16#75#); crc.update(16#74#); crc.update(16#69#); crc.update(16#66#);
+    crc.update(16#75#); crc.update(16#6c#); crc.update(16#21#); crc.update(16#21#);
     crc.finalize;
-    check_equal(crc.get, std_logic_vector'(x"84"));
+    r := crc.get;
+    vunit_lib.check_pkg.check_equal(16#84#, r);
 
     crc.init;
-    crc.update(x"10"); crc.update(x"56"); crc.update(x"c3"); crc.update(x"95");
-    crc.update(x"a5"); crc.update(x"75"); crc.update(x"38"); crc.update(x"63");
-    crc.update(x"2f"); crc.update(x"86"); crc.update(x"7b"); crc.update(x"01");
-    crc.update(x"32"); crc.update(x"de"); crc.update(x"35"); crc.update(x"7a");
+    crc.update(16#10#); crc.update(16#56#); crc.update(16#c3#); crc.update(16#95#);
+    crc.update(16#a5#); crc.update(16#75#); crc.update(16#38#); crc.update(16#63#);
+    crc.update(16#2f#); crc.update(16#86#); crc.update(16#7b#); crc.update(16#01#);
+    crc.update(16#32#); crc.update(16#de#); crc.update(16#35#); crc.update(16#7a#);
     crc.finalize;
-    check_equal(crc.get, std_logic_vector'(x"18"));
+    r := crc.get;
+    vunit_lib.check_pkg.check_equal(16#18#, r);
 
   end procedure crc_test;
 
