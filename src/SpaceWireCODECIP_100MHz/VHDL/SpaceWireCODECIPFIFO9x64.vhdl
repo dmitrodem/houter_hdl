@@ -27,6 +27,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 use work.ftlib.all;
+use work.testlib.all;
 
 entity SpaceWireCODECIPFIFO9x64 is
     generic(
@@ -44,7 +45,9 @@ entity SpaceWireCODECIPFIFO9x64 is
         full           : out std_logic;
         readDataCount  : out std_logic_vector(5 downto 0);
         writeDataCount : out std_logic_vector(5 downto 0);
-        testen         : in  std_logic
+        testen         : in  std_logic;
+        mi             : in  memdbg_in_t;
+        mo             : out memdbg_out_t
     );
 
 end SpaceWireCODECIPFIFO9x64;

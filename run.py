@@ -16,6 +16,7 @@ VU.add_com()
 spw = VU.add_library("spw")
 spw.add_source_files(ROOT / "hcmos8d"/ "*.v")
 spw.add_source_files(ROOT / "ftlib"/ "*.vhd")
+spw.add_source_files(ROOT / "testlib"/ "*.vhd")
 spw.add_source_files(ROOT / "SpaceWireCODECIP_100MHz" / "VHDL" / "*.vhdl")
 spw.add_source_files(ROOT / "SpaceWireRouterIP_6PortVersion" / "VHDL" / "*.vhdl")
 
