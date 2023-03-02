@@ -31,7 +31,8 @@ use work.SpaceWireCODECIPPackage.all;
 entity SpaceWireCODECIP is
   generic (
     clkfreq   : real;
-    txclkfreq : real);
+    txclkfreq : real;
+    tech      : integer);
   port (
     clock                       : in  std_logic;
     transmitClock               : in  std_logic;
@@ -75,7 +76,6 @@ entity SpaceWireCODECIP is
     statisticalInformationClear : in  std_logic;
     statisticalInformation      : out bit32X8Array;
     testen                      : in  std_logic
-
     );
 end SpaceWireCODECIP;
 
@@ -139,13 +139,16 @@ begin
 --  FIFO.
 --------------------------------------------------------------------------------
   transmitFIFO : entity work.SpaceWireCODECIPFIFO9x64
+    generic map (
+        tech => tech
+    )
     port map (
-      writeDataIn    => transmitFIFODataIn,
-      readClock      => clock,
-      readEnable     => iTransmitFIFOReadEnable,
       reset          => reset,
       writeClock     => clock,
+      readClock      => clock,
+      writeDataIn    => transmitFIFODataIn,
       writeEnable    => transmitFIFOWriteEnable,
+      readEnable     => iTransmitFIFOReadEnable,
       readDataOut    => transmitFIFOReadData,
       empty          => transmitFIFOEmpty,
       full           => transmitFIFOFull,
@@ -156,18 +159,21 @@ begin
 
 
   receiveFIFO : entity work.SpaceWireCODECIPFIFO9x64
+    generic map (
+        tech => tech
+    )
     port map (
+      reset          => reset,
+      writeClock     => receiveClock,
       readClock      => clock,
+      writeDataIn    => iReceiveFIFOWriteData,
+      writeEnable    => iReceiveFIFOWriteEnable2,
       readEnable     => receiveFIFOReadEnable,
       readDataOut    => receiveFIFODataOut,
-      writeClock     => receiveClock,
-      writeEnable    => iReceiveFIFOWriteEnable2,
-      writeDataIn    => iReceiveFIFOWriteData,
       empty          => receiveFIFOEmpty,
       full           => receiveFIFOFull,
       readDataCount  => receiveFIFOCount,
       writeDataCount => open,
-      reset          => reset,
       testen         => testen
       );
 

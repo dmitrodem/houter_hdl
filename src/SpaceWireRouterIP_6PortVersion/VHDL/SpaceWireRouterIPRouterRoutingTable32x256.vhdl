@@ -26,6 +26,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 
 entity SpaceWireRouterIPRouterRoutingTable32x256 is
+    generic (
+        tech : integer
+    );
     port (
         clock          : in  std_logic;
         reset          : in  std_logic;
@@ -35,19 +38,20 @@ entity SpaceWireRouterIPRouterRoutingTable32x256 is
         address        : in  std_logic_vector (7 downto 0);
         writeData      : in  std_logic_vector (31 downto 0);
         readData       : out std_logic_vector (31 downto 0);
-        acknowledge    : out std_logic
-        );
+        acknowledge    : out std_logic;
+        testen         : in  std_logic
+    );
 end SpaceWireRouterIPRouterRoutingTable32x256;
-
 
 architecture behavioral of SpaceWireRouterIPRouterRoutingTable32x256 is
 
     signal iAcknowledge         : std_logic;
     signal iWriteEnableRegister : std_logic;
+    signal iChipEnableRegister  : std_logic;
     signal iReadData            : std_logic_vector (31 downto 0);
     signal ramDataOut           : std_logic_vector (31 downto 0);
     signal iWriteData           : std_logic_vector (31 downto 0);
-    
+
     type BusStateMachine is (
         busStateIdle,
         busStateWrite0,
@@ -55,37 +59,43 @@ architecture behavioral of SpaceWireRouterIPRouterRoutingTable32x256 is
         busStateWrite2,
         busStateRead0,
         busStateRead1,
+        busStateRead2,
         busStateWait0,
         busStateWait1,
         busStateWait2,
         busStateWait3
-        );
+    );
     signal iBusState : BusStateMachine;
-    
+
 begin
 
---------------------------------------------------------------------------------
--- Routing Table.
---------------------------------------------------------------------------------
-  ram0 : entity work.SpaceWireRouterIPRam32x256
-    port map (
-      clock       => clock,
-      writeData   => iWriteData,
-      address     => address,
-      writeEnable => iWriteEnableRegister,
-      readData    => ramDataOut
-      );
+    --------------------------------------------------------------------------------
+    -- Routing Table.
+    --------------------------------------------------------------------------------
+    ram0 : entity work.SpaceWireRouterIPRam32x256
+        generic map (
+            tech => tech
+        )
+        port map(
+            clock       => clock,
+            writeData   => iWriteData,
+            address     => address,
+            writeEnable => iWriteEnableRegister,
+            chipEnable  => iChipEnableRegister,
+            readData    => ramDataOut,
+            testen      => testen
+        );
 
     readData <= iReadData;
 
---------------------------------------------------------------------------------
--- Routing InterFace.
---------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------
+    -- Routing InterFace.
+    --------------------------------------------------------------------------------
 
-----------------------------------------------------------------------
--- The state machine which access(Read,Write) to the Routing table.
-----------------------------------------------------------------------
-    process (clock, reset)
+    ----------------------------------------------------------------------
+    -- The state machine which access(Read,Write) to the Routing table.
+    ----------------------------------------------------------------------
+    process(clock, reset)
     begin
         if (reset = '1') then
             iBusState            <= busStateIdle;
@@ -93,8 +103,12 @@ begin
             iReadData            <= (others => '0');
             iWriteData           <= (others => '0');
             iWriteEnableRegister <= '0';
-            
+            iChipEnableRegister  <= '0';
+
         elsif (clock'event and clock = '1') then
+            iChipEnableRegister  <= '0';
+            iWriteEnableRegister <= '0';
+            iAcknowledge         <= '0';
             case iBusState is
                 when busStateIdle =>
                     iAcknowledge <= '0';
@@ -111,45 +125,49 @@ begin
                 -- Read Time from Ram Data.
                 ----------------------------------------------------------------------
                 when busStateWrite0 =>
-                    iBusState <= busStateWrite1;
+                    iChipEnableRegister <= '1';
+                    iBusState           <= busStateWrite1;
 
                 ----------------------------------------------------------------------
                 -- If dataByteEnable is "1" then write Writedata.
                 ----------------------------------------------------------------------
                 when busStateWrite1 =>
-                    if (dataByteEnable (0) = '1') then
-                        iWriteData (7 downto 0) <= writeData (7 downto 0);
+                    if (dataByteEnable(0) = '1') then
+                        iWriteData(7 downto 0) <= writeData(7 downto 0);
                     else
-                        iWriteData (7 downto 0) <= ramDataOut (7 downto 0);
+                        iWriteData(7 downto 0) <= ramDataOut(7 downto 0);
                     end if;
-                    if (dataByteEnable (1) = '1') then
-                        iWriteData (15 downto 8) <= writeData (15 downto 8);
+                    if (dataByteEnable(1) = '1') then
+                        iWriteData(15 downto 8) <= writeData(15 downto 8);
                     else
-                        iWriteData (15 downto 8) <= ramDataOut (15 downto 8);
+                        iWriteData(15 downto 8) <= ramDataOut(15 downto 8);
                     end if;
-                    if (dataByteEnable (2) = '1') then
-                        iWriteData (23 downto 16) <= writeData (23 downto 16);
+                    if (dataByteEnable(2) = '1') then
+                        iWriteData(23 downto 16) <= writeData(23 downto 16);
                     else
-                        iWriteData (23 downto 16) <= ramDataOut (23 downto 16);
+                        iWriteData(23 downto 16) <= ramDataOut(23 downto 16);
                     end if;
-                    if (dataByteEnable (3) = '1') then
-                        iWriteData (31 downto 24) <= writeData (31 downto 24);
+                    if (dataByteEnable(3) = '1') then
+                        iWriteData(31 downto 24) <= writeData(31 downto 24);
                     else
-                        iWriteData (31 downto 24) <= ramDataOut (31 downto 24);
+                        iWriteData(31 downto 24) <= ramDataOut(31 downto 24);
                     end if;
+                    iChipEnableRegister  <= '1';
                     iWriteEnableRegister <= '1';
                     iAcknowledge         <= '1';
                     iBusState            <= busStateWrite2;
 
                 when busStateWrite2 =>
-                    iWriteEnableRegister <= '0';
-                    iAcknowledge         <= '0';
                     iBusState            <= busStateWait1;
 
                 when busStateRead0 =>
-                    iBusState <= busStateRead1;
+                    iChipEnableRegister <= '1';
+                    iBusState           <= busStateRead1;
 
                 when busStateRead1 =>
+                    iBusState           <= busStateRead2;
+
+                when busStateRead2 =>
                     iReadData    <= ramDataOut;
                     iAcknowledge <= '1';
                     iBusState    <= busStateWait0;
@@ -158,7 +176,6 @@ begin
                 -- wait time for the master change a signal to "0".
                 ----------------------------------------------------------------------
                 when busStateWait0 =>
-                    iAcknowledge <= '0';
                     iBusState    <= busStateWait1;
 
                 when busStateWait1 =>
@@ -170,7 +187,6 @@ begin
                 when busStateWait3 =>
                     iBusState <= busStateIdle;
 
-                --when others => null;
             end case;
         end if;
     end process;

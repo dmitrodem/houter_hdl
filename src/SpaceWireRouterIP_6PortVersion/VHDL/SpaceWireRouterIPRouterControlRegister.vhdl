@@ -36,6 +36,9 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity SpaceWireRouterIPRouterControlRegister is
+    generic (
+        tech : integer
+    );
     port (
         clock                       : in  std_logic;
         reset                       : in  std_logic;
@@ -158,7 +161,8 @@ entity SpaceWireRouterIPRouterControlRegister is
         statisticalInformation5     : in  bit32X8Array;
         statisticalInformation6     : in  bit32X8Array;
         -- [[[end]]]
-        statisticalInformationClear : out std_logic
+        statisticalInformationClear : out std_logic;
+        testen                      : in  std_logic
         );
 end SpaceWireRouterIPRouterControlRegister;
 
@@ -1061,6 +1065,9 @@ begin
 --  Routing Table.
 --------------------------------------------------------------------------------
     routerRoutingTable : entity work.SpaceWireRouterIPRouterRoutingTable32x256
+        generic map (
+            tech => tech
+        )
         port map (
             clock          => clock,
             reset          => reset,
@@ -1070,7 +1077,8 @@ begin
             address        => address (9 downto 2),
             writeData      => writeData,
             readData       => routingTableReadData,
-            acknowledge    => routingTableAcknowledge
+            acknowledge    => routingTableAcknowledge,
+            testen         => testen
             );
 --------------------------------------------------------------------------------        
 -- longen link reset signal.

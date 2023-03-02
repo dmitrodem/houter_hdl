@@ -36,8 +36,9 @@ entity SpaceWireRouterIP is
     generic (
         clkfreq : real;
         txclkfreq : real;
+        tech : integer;
         gNumberOfInternalPort : integer := cNumberOfInternalPort
-        );
+    );
     port (
         clock                       : in  std_logic;
         transmitClock               : in  std_logic;
@@ -115,7 +116,8 @@ entity SpaceWireRouterIP is
         busMasterUserByteEnableIn   : in  std_logic_vector (3 downto 0);
         busMasterUserStrobeIn       : in  std_logic;
         busMasterUserRequestIn      : in  std_logic;
-        busMasterUserAcknowledgeOut : out std_logic
+        busMasterUserAcknowledgeOut : out std_logic;
+        testen                      : in  std_logic
         );
 end SpaceWireRouterIP;
 
@@ -624,7 +626,12 @@ begin
     -- [[[cog
     -- tpl = """
     -- port{i:02} : entity work.SpaceWireRouterIPSpaceWirePort
-    --     generic map (clkfreq => clkfreq, txclkfreq => txclkfreq,  gNumberOfInternalPort => x"{i:02x}", gNumberOfExternalPort => cNumberOfExternalPort)
+    --     generic map (
+    --         clkfreq => clkfreq,
+    --         txclkfreq => txclkfreq,
+    --         tech => tech,
+    --         gNumberOfInternalPort => x"{i:02x}",
+    --         gNumberOfExternalPort => cNumberOfExternalPort)
     --     port map (
     --         clock                       => clock,
     --         transmitClock               => transmitClock,
@@ -682,7 +689,8 @@ begin
     --         spaceWireStrobeIn           => spaceWireStrobeIn{i},
     --
     --         statisticalInformationClear => statisticalInformationClear,
-    --         statisticalInformation      => statisticalInformation{i}
+    --         statisticalInformation      => statisticalInformation{i},
+    --         testen                      => testen
     --         );
     -- """
     -- for i in range(1, int(nports) + 1):
@@ -690,7 +698,12 @@ begin
     -- ]]]
 
     port01 : entity work.SpaceWireRouterIPSpaceWirePort
-        generic map (clkfreq => clkfreq, txclkfreq => txclkfreq,  gNumberOfInternalPort => x"01", gNumberOfExternalPort => cNumberOfExternalPort)
+        generic map (
+            clkfreq => clkfreq,
+            txclkfreq => txclkfreq,
+            tech => tech,
+            gNumberOfInternalPort => x"01",
+            gNumberOfExternalPort => cNumberOfExternalPort)
         port map (
             clock                       => clock,
             transmitClock               => transmitClock,
@@ -748,12 +761,18 @@ begin
             spaceWireStrobeIn           => spaceWireStrobeIn1,
 
             statisticalInformationClear => statisticalInformationClear,
-            statisticalInformation      => statisticalInformation1
+            statisticalInformation      => statisticalInformation1,
+            testen                      => testen
             );
 
 
     port02 : entity work.SpaceWireRouterIPSpaceWirePort
-        generic map (clkfreq => clkfreq, txclkfreq => txclkfreq,  gNumberOfInternalPort => x"02", gNumberOfExternalPort => cNumberOfExternalPort)
+        generic map (
+            clkfreq => clkfreq,
+            txclkfreq => txclkfreq,
+            tech => tech,
+            gNumberOfInternalPort => x"02",
+            gNumberOfExternalPort => cNumberOfExternalPort)
         port map (
             clock                       => clock,
             transmitClock               => transmitClock,
@@ -811,12 +830,18 @@ begin
             spaceWireStrobeIn           => spaceWireStrobeIn2,
 
             statisticalInformationClear => statisticalInformationClear,
-            statisticalInformation      => statisticalInformation2
+            statisticalInformation      => statisticalInformation2,
+            testen                      => testen
             );
 
 
     port03 : entity work.SpaceWireRouterIPSpaceWirePort
-        generic map (clkfreq => clkfreq, txclkfreq => txclkfreq,  gNumberOfInternalPort => x"03", gNumberOfExternalPort => cNumberOfExternalPort)
+        generic map (
+            clkfreq => clkfreq,
+            txclkfreq => txclkfreq,
+            tech => tech,
+            gNumberOfInternalPort => x"03",
+            gNumberOfExternalPort => cNumberOfExternalPort)
         port map (
             clock                       => clock,
             transmitClock               => transmitClock,
@@ -874,12 +899,18 @@ begin
             spaceWireStrobeIn           => spaceWireStrobeIn3,
 
             statisticalInformationClear => statisticalInformationClear,
-            statisticalInformation      => statisticalInformation3
+            statisticalInformation      => statisticalInformation3,
+            testen                      => testen
             );
 
 
     port04 : entity work.SpaceWireRouterIPSpaceWirePort
-        generic map (clkfreq => clkfreq, txclkfreq => txclkfreq,  gNumberOfInternalPort => x"04", gNumberOfExternalPort => cNumberOfExternalPort)
+        generic map (
+            clkfreq => clkfreq,
+            txclkfreq => txclkfreq,
+            tech => tech,
+            gNumberOfInternalPort => x"04",
+            gNumberOfExternalPort => cNumberOfExternalPort)
         port map (
             clock                       => clock,
             transmitClock               => transmitClock,
@@ -937,12 +968,18 @@ begin
             spaceWireStrobeIn           => spaceWireStrobeIn4,
 
             statisticalInformationClear => statisticalInformationClear,
-            statisticalInformation      => statisticalInformation4
+            statisticalInformation      => statisticalInformation4,
+            testen                      => testen
             );
 
 
     port05 : entity work.SpaceWireRouterIPSpaceWirePort
-        generic map (clkfreq => clkfreq, txclkfreq => txclkfreq,  gNumberOfInternalPort => x"05", gNumberOfExternalPort => cNumberOfExternalPort)
+        generic map (
+            clkfreq => clkfreq,
+            txclkfreq => txclkfreq,
+            tech => tech,
+            gNumberOfInternalPort => x"05",
+            gNumberOfExternalPort => cNumberOfExternalPort)
         port map (
             clock                       => clock,
             transmitClock               => transmitClock,
@@ -1000,12 +1037,18 @@ begin
             spaceWireStrobeIn           => spaceWireStrobeIn5,
 
             statisticalInformationClear => statisticalInformationClear,
-            statisticalInformation      => statisticalInformation5
+            statisticalInformation      => statisticalInformation5,
+            testen                      => testen
             );
 
 
     port06 : entity work.SpaceWireRouterIPSpaceWirePort
-        generic map (clkfreq => clkfreq, txclkfreq => txclkfreq,  gNumberOfInternalPort => x"06", gNumberOfExternalPort => cNumberOfExternalPort)
+        generic map (
+            clkfreq => clkfreq,
+            txclkfreq => txclkfreq,
+            tech => tech,
+            gNumberOfInternalPort => x"06",
+            gNumberOfExternalPort => cNumberOfExternalPort)
         port map (
             clock                       => clock,
             transmitClock               => transmitClock,
@@ -1063,7 +1106,8 @@ begin
             spaceWireStrobeIn           => spaceWireStrobeIn6,
 
             statisticalInformationClear => statisticalInformationClear,
-            statisticalInformation      => statisticalInformation6
+            statisticalInformation      => statisticalInformation6,
+            testen                      => testen
             );
 
     -- [[[end]]]
@@ -1224,6 +1268,9 @@ begin
 -- Router Link Control, Status Registers and Routing Table.
 --------------------------------------------------------------------------------
     routerControlRegister : entity work.SpaceWireRouterIPRouterControlRegister
+        generic map (
+            tech => tech
+        )
         port map (
             clock         => clock,
             reset         => reset,
@@ -1359,7 +1406,8 @@ begin
             statisticalInformation5     => statisticalInformation5,
             statisticalInformation6     => statisticalInformation6,
             -- [[[end]]]
-            statisticalInformationClear => statisticalInformationClear
+            statisticalInformationClear => statisticalInformationClear,
+            testen                      => testen
             );
 
 

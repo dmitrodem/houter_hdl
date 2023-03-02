@@ -35,6 +35,7 @@ entity SpaceWireRouterIPSpaceWirePort is
     generic (
         clkfreq : real;
         txclkfreq : real;
+        tech : integer;
         gNumberOfInternalPort : std_logic_vector (7 downto 0);
         gNumberOfExternalPort : std_logic_vector (7 downto 0));
     port (
@@ -99,7 +100,8 @@ entity SpaceWireRouterIPSpaceWirePort is
         spaceWireStrobeIn           : in  std_logic;
         -- Statistics.
         statisticalInformationClear : in  std_logic;
-        statisticalInformation      : out bit32X8Array
+        statisticalInformation      : out bit32X8Array;
+        testen                      : in  std_logic
         );
 end SpaceWireRouterIPSpaceWirePort;
 
@@ -180,7 +182,8 @@ begin
     SpaceWireCODEC : entity work.SpaceWireCODECIP
         generic map (
           clkfreq => clkfreq,
-          txclkfreq => txclkfreq)
+          txclkfreq => txclkfreq,
+          tech => tech)
         port map (
             -- Clock & Reset.
             clock                       => clock,
@@ -224,7 +227,7 @@ begin
             -- Statistics.
             statisticalInformationClear => statisticalInformationClear,
             statisticalInformation      => statisticalInformation,
-            testen => '0'
+            testen                      => testen
             );
 
     iReceiveFIFOReady <= '0' when receiveFIFOEmpty = '1' else '1';
