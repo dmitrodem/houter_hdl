@@ -30,6 +30,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 
 use work.SpaceWireCODECIPPackage.all;
+use work.testlib.all;
 
 entity SpaceWireRouterIPSpaceWirePort is
     generic (
@@ -101,7 +102,11 @@ entity SpaceWireRouterIPSpaceWirePort is
         -- Statistics.
         statisticalInformationClear : in  std_logic;
         statisticalInformation      : out bit32X8Array;
-        testen                      : in  std_logic
+        testen                      : in  std_logic;
+        tmi : in  memdbg_in_t;
+        tmo : out memdbg_out_t;
+        rmi : in  memdbg_in_t;
+        rmo : out memdbg_out_t
         );
 end SpaceWireRouterIPSpaceWirePort;
 
@@ -227,7 +232,11 @@ begin
             -- Statistics.
             statisticalInformationClear => statisticalInformationClear,
             statisticalInformation      => statisticalInformation,
-            testen                      => testen
+            testen                      => testen,
+            tmi                         => tmi,
+            tmo                         => tmo,
+            rmi                         => rmi,
+            rmo                         => rmo
             );
 
     iReceiveFIFOReady <= '0' when receiveFIFOEmpty = '1' else '1';

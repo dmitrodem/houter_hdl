@@ -229,13 +229,13 @@ begin
             -- for i in range(0, n):
             --   print(f"if (irequest{i} = '0' and iGranted ({i}) = '1') then iGranted ({i}) <= '0'; end if;")
             -- ]]]
-            if (iRequest0 = '0' and iGranted (0) = '1') then iGranted (0) <= '0'; end if;
-            if (iRequest1 = '0' and iGranted (1) = '1') then iGranted (1) <= '0'; end if;
-            if (iRequest2 = '0' and iGranted (2) = '1') then iGranted (2) <= '0'; end if;
-            if (iRequest3 = '0' and iGranted (3) = '1') then iGranted (3) <= '0'; end if;
-            if (iRequest4 = '0' and iGranted (4) = '1') then iGranted (4) <= '0'; end if;
-            if (iRequest5 = '0' and iGranted (5) = '1') then iGranted (5) <= '0'; end if;
-            if (iRequest6 = '0' and iGranted (6) = '1') then iGranted (6) <= '0'; end if;
+            if (irequest0 = '0' and iGranted (0) = '1') then iGranted (0) <= '0'; end if;
+            if (irequest1 = '0' and iGranted (1) = '1') then iGranted (1) <= '0'; end if;
+            if (irequest2 = '0' and iGranted (2) = '1') then iGranted (2) <= '0'; end if;
+            if (irequest3 = '0' and iGranted (3) = '1') then iGranted (3) <= '0'; end if;
+            if (irequest4 = '0' and iGranted (4) = '1') then iGranted (4) <= '0'; end if;
+            if (irequest5 = '0' and iGranted (5) = '1') then iGranted (5) <= '0'; end if;
+            if (irequest6 = '0' and iGranted (6) = '1') then iGranted (6) <= '0'; end if;
             -- [[[end]]]
         end if;
 

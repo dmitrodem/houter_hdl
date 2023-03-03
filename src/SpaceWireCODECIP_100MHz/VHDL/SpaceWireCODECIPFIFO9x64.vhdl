@@ -294,41 +294,62 @@ begin
                 end if;
             end if;
         end process;
+        mo <= memdbg_out_none;
     end generate use_simulation_ram;
 
     use_hcmos8d_ram : if tech /= 0 generate
         blk_hcmos8d_ram : block
-            signal hcmos8d_data_in      : std_logic_vector(31 downto 0);
-            signal hcmos8d_data_out     : std_logic_vector(31 downto 0);
-            signal hcmos8d_write_enable : std_logic;
-            signal hcmos8d_read_enable  : std_logic;
-
+            signal hcmos8d_porta_address  : std_logic_vector(6 downto 0);
+            signal hcmos8d_porta_data_in  : std_logic_vector(31 downto 0);
+            signal hcmos8d_porta_data_out : std_logic_vector(31 downto 0);
+            signal hcmos8d_porta_cen      : std_logic_vector(3 downto 0);
+            signal hcmos8d_porta_wen      : std_logic_vector(3 downto 0);
+            signal hcmos8d_portb_address  : std_logic_vector(6 downto 0);
+            signal hcmos8d_portb_data_in  : std_logic_vector(31 downto 0);
+            signal hcmos8d_portb_data_out : std_logic_vector(31 downto 0);
+            signal hcmos8d_portb_cen      : std_logic_vector(3 downto 0);
+            signal hcmos8d_portb_wen      : std_logic_vector(3 downto 0);
         begin
             loop_hcmos8d_ram : for i in 0 to 3 generate
                 ram : hcmos8d_dp_0128x08m16
                     port map(
-                        QA   => hcmos8d_data_out(31 - 8 * i downto 24 - 8 * i),
+                        QA   => hcmos8d_porta_data_out(31 - 8 * i downto 24 - 8 * i),
                         CLKA => readClock,
-                        CENA => hcmos8d_read_enable,
-                        WENA => '1',
-                        AA   => "0" & std_logic_vector(iReadPointer),
-                        DA   => (others => '0'),
-                        QB   => open,
+                        CENA => hcmos8d_porta_cen(i),
+                        WENA => hcmos8d_porta_wen(i),
+                        AA   => hcmos8d_porta_address,
+                        DA   => hcmos8d_porta_data_in(31 - 8 * i downto 24 - 8 * i),
+                        QB   => hcmos8d_portb_data_out(31 - 8 * i downto 24 - 8 * i),
                         CLKB => writeClock,
-                        CENB => hcmos8d_write_enable,
-                        WENB => '0',
-                        AB   => "0" & std_logic_vector(iWritePointer),
-                        DB   => hcmos8d_data_in(31 - 8 * i downto 24 - 8 * i)
+                        CENB => hcmos8d_portb_cen(i),
+                        WENB => hcmos8d_portb_wen(i),
+                        AB   => hcmos8d_portb_address,
+                        DB   => hcmos8d_portb_data_in(31 - 8 * i downto 24 - 8 * i)
                     );
             end generate loop_hcmos8d_ram;
             iReadDataOut         <= writeDataIn when testen = '1' else
                                     mvote(
-                                        hcmos8d_data_out(26 downto 18),
-                                        hcmos8d_data_out(17 downto 9),
-                                        hcmos8d_data_out(8 downto 0));
-            hcmos8d_data_in      <= "00000" & writeDataIn & writeDataIn & writeDataIn;
-            hcmos8d_read_enable  <= '1' when testen = '1' else (not readEnable);
-            hcmos8d_write_enable <= '1' when testen = '1' else (not writeEnable);
+                                         hcmos8d_porta_data_out(26 downto 18),
+                                         hcmos8d_porta_data_out(17 downto 9),
+                                         hcmos8d_porta_data_out(8 downto 0));
+            -- port A
+            hcmos8d_porta_address <= mi.a when testen = '1' else
+                                     "0" & std_logic_vector(iReadPointer);
+            hcmos8d_porta_data_in <= mi.d & mi.d & mi.d & mi.d when testen = '1' else
+                                     (others => '0');
+            hcmos8d_porta_cen     <= mi.cen(3) & mi.cen(2) & mi.cen(1) & mi.cen(0) when testen = '1' else
+                                     (not readEnable) & (not readEnable) & (not readEnable) & (not readEnable);
+            hcmos8d_porta_wen     <= mi.wen(3) & mi.wen(2) & mi.wen(1) & mi.wen(0) when testen = '1' else
+                                     "1111";
+            -- port B
+            hcmos8d_portb_address <= mi.a when testen = '1' else
+                                     "0" & std_logic_vector(iWritePointer);
+            hcmos8d_portb_data_in <= mi.d & mi.d & mi.d & mi.d when testen = '1' else
+                                     "00000" & writeDataIn & writeDataIn & writeDataIn;
+            hcmos8d_portb_cen     <= "1111" when testen = '1' else
+                                     (not writeEnable) & (not writeEnable) & (not writeEnable) & (not writeEnable);
+            hcmos8d_portb_wen     <= "1111" when testen = '1' else
+                                     "0000";            
         end block blk_hcmos8d_ram;
     end generate use_hcmos8d_ram;
 

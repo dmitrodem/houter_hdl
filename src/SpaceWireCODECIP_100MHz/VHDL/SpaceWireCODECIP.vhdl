@@ -27,6 +27,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 use work.SpaceWireCODECIPPackage.all;
+use work.testlib.all;
 
 entity SpaceWireCODECIP is
   generic (
@@ -75,7 +76,11 @@ entity SpaceWireCODECIP is
 --
     statisticalInformationClear : in  std_logic;
     statisticalInformation      : out bit32X8Array;
-    testen                      : in  std_logic
+        testen                      : in  std_logic;
+        tmi                         : in  memdbg_in_t;
+        tmo                         : out memdbg_out_t;
+        rmi                         : in  memdbg_in_t;
+        rmo                         : out memdbg_out_t
     );
 end SpaceWireCODECIP;
 
@@ -154,9 +159,10 @@ begin
       full           => transmitFIFOFull,
       readDataCount  => transmitFIFODataCount,
       writeDataCount => open,
-      testen         => testen
+            testen         => testen,
+            mi             => tmi,
+            mo             => tmo
       );
-
 
   receiveFIFO : entity work.SpaceWireCODECIPFIFO9x64
     generic map (
@@ -174,9 +180,10 @@ begin
       full           => receiveFIFOFull,
       readDataCount  => receiveFIFOCount,
       writeDataCount => open,
-      testen         => testen
+            testen         => testen,
+            mi             => rmi,
+            mo             => rmo
       );
-
 
   transmitReadyPulse : entity work.SpaceWireCODECIPSynchronizeOnePulse
     port map (
@@ -186,7 +193,6 @@ begin
       asynchronousIn    => iTransmitBusy,
       synchronizedOut   => transmitBusySynchronized
       );
-
 
   SpaceWireLinkInterface : entity work.SpaceWireCODECIPLinkInterface
     generic map (

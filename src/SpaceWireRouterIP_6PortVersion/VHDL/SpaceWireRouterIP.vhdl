@@ -27,6 +27,7 @@
 -- [[[end]]]
 use work.SpaceWireRouterIPPackage.all;
 use work.SpaceWireCODECIPPackage.all;
+use work.testlib.all;
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -331,6 +332,24 @@ architecture behavioral of SpaceWireRouterIP is
     -- print(f"signal iLinkUp : std_logic_vector ({n-1} downto 0);")
     -- ]]]
     signal iLinkUp : std_logic_vector (6 downto 0);
+    -- [[[end]]]
+    -- [[[cog
+    -- for i in range(1, int(nports)+1):
+    --   print(f"signal tmi{i}, rmi{i} : memdbg_in_t;")
+    --   print(f"signal tmo{i}, rmo{i} : memdbg_out_t;")
+    -- ]]]
+    signal tmi1, rmi1 : memdbg_in_t;
+    signal tmo1, rmo1 : memdbg_out_t;
+    signal tmi2, rmi2 : memdbg_in_t;
+    signal tmo2, rmo2 : memdbg_out_t;
+    signal tmi3, rmi3 : memdbg_in_t;
+    signal tmo3, rmo3 : memdbg_out_t;
+    signal tmi4, rmi4 : memdbg_in_t;
+    signal tmo4, rmo4 : memdbg_out_t;
+    signal tmi5, rmi5 : memdbg_in_t;
+    signal tmo5, rmo5 : memdbg_out_t;
+    signal tmi6, rmi6 : memdbg_in_t;
+    signal tmo6, rmo6 : memdbg_out_t;
     -- [[[end]]]
 
 begin
@@ -690,7 +709,11 @@ begin
     --
     --         statisticalInformationClear => statisticalInformationClear,
     --         statisticalInformation      => statisticalInformation{i},
-    --         testen                      => testen
+    --         testen                      => testen,
+    --         tmi                         => tmi{i},
+    --         tmo                         => tmo{i},
+    --         rmi                         => rmi{i},
+    --         rmo                         => rmo{i}
     --         );
     -- """
     -- for i in range(1, int(nports) + 1):
@@ -762,7 +785,11 @@ begin
 
             statisticalInformationClear => statisticalInformationClear,
             statisticalInformation      => statisticalInformation1,
-            testen                      => testen
+            testen                      => testen,
+            tmi                         => tmi1,
+            tmo                         => tmo1,
+            rmi                         => rmi1,
+            rmo                         => rmo1
             );
 
 
@@ -831,7 +858,11 @@ begin
 
             statisticalInformationClear => statisticalInformationClear,
             statisticalInformation      => statisticalInformation2,
-            testen                      => testen
+            testen                      => testen,
+            tmi                         => tmi2,
+            tmo                         => tmo2,
+            rmi                         => rmi2,
+            rmo                         => rmo2
             );
 
 
@@ -900,7 +931,11 @@ begin
 
             statisticalInformationClear => statisticalInformationClear,
             statisticalInformation      => statisticalInformation3,
-            testen                      => testen
+            testen                      => testen,
+            tmi                         => tmi3,
+            tmo                         => tmo3,
+            rmi                         => rmi3,
+            rmo                         => rmo3
             );
 
 
@@ -969,7 +1004,11 @@ begin
 
             statisticalInformationClear => statisticalInformationClear,
             statisticalInformation      => statisticalInformation4,
-            testen                      => testen
+            testen                      => testen,
+            tmi                         => tmi4,
+            tmo                         => tmo4,
+            rmi                         => rmi4,
+            rmo                         => rmo4
             );
 
 
@@ -1038,7 +1077,11 @@ begin
 
             statisticalInformationClear => statisticalInformationClear,
             statisticalInformation      => statisticalInformation5,
-            testen                      => testen
+            testen                      => testen,
+            tmi                         => tmi5,
+            tmo                         => tmo5,
+            rmi                         => rmi5,
+            rmo                         => rmo5
             );
 
 
@@ -1107,7 +1150,11 @@ begin
 
             statisticalInformationClear => statisticalInformationClear,
             statisticalInformation      => statisticalInformation6,
-            testen                      => testen
+            testen                      => testen,
+            tmi                         => tmi6,
+            tmo                         => tmo6,
+            rmi                         => rmi6,
+            rmo                         => rmo6
             );
 
     -- [[[end]]]
@@ -1608,5 +1655,22 @@ begin
             autoTimeCodeValue     => autoTimeCodeValue,
             autoTimeCodeCycleTime => autoTimeCodeCycleTime
             );
-
+    -- [[[cog
+    -- for i in range(1, int(nports)+1):
+    --   print(f"tmi{i}  <= memdbg_in_none;")
+    --   print(f"rmi{i}  <= memdbg_in_none;")
+    -- ]]]
+    tmi1  <= memdbg_in_none;
+    rmi1  <= memdbg_in_none;
+    tmi2  <= memdbg_in_none;
+    rmi2  <= memdbg_in_none;
+    tmi3  <= memdbg_in_none;
+    rmi3  <= memdbg_in_none;
+    tmi4  <= memdbg_in_none;
+    rmi4  <= memdbg_in_none;
+    tmi5  <= memdbg_in_none;
+    rmi5  <= memdbg_in_none;
+    tmi6  <= memdbg_in_none;
+    rmi6  <= memdbg_in_none;
+    -- [[[end]]]
 end behavioral;

@@ -71,53 +71,31 @@ begin
 
     use_hcmos8d_tech : if tech = 1 generate
         blk_hcmos8d_tech : block
+            constant N_MODULES      : integer := 24;
             signal hcmos8d_active     : std_logic;
             signal hcmos8d_inactive   : std_logic;
-            signal hcmos8d_data_in    : std_logic_vector(95 downto 0);
-            signal hcmos8d_data_out_l : std_logic_vector(95 downto 0);
-            signal hcmos8d_data_out_h : std_logic_vector(95 downto 0);
-            signal hcmos8d_data_out   : std_logic_vector(95 downto 0);
-            signal hcmos8d_cen_l      : std_logic;
-            signal hcmos8d_cen_h      : std_logic;
-            signal hcmos8d_cen        : std_logic;
-            signal hcmos8d_wen        : std_logic;
+            signal hcmos8d_address  : std_logic_vector(6 downto 0);
+            signal hcmos8d_data_in  : std_logic_vector(8 * N_MODULES - 1 downto 0);
+            signal hcmos8d_data_out : std_logic_vector(8 * N_MODULES - 1 downto 0);
+            signal hcmos8d_cen      : std_logic_vector(N_MODULES - 1 downto 0);
+            signal hcmos8d_wen      : std_logic_vector(N_MODULES - 1 downto 0);
         begin
             hcmos8d_active   <= '0';
             hcmos8d_inactive <= '1';
-            loop_lower_ram : for i in 0 to 11 generate
+            loop_ram : for i in 0 to N_MODULES - 1 generate
                 ul : component hcmos8d_sp_0128x08m16
                     port map(
-                        Q   => hcmos8d_data_out_l(95 - 8 * i downto 88 - 8 * i),
-                        A   => address(6 downto 0),
-                        CEN => hcmos8d_cen_l,
+                        Q   => hcmos8d_data_out(8 * N_MODULES - 1 - 8 * i downto 8 * N_MODULES - 8 - 8 * i),
+                        A   => hcmos8d_address,
+                        CEN => hcmos8d_cen(i),
                         CLK => clock,
-                        D   => hcmos8d_data_in(95 - 8 * i downto 88 - 8 * i),
-                        WEN => hcmos8d_wen
+                        D   => hcmos8d_data_in(8 * N_MODULES - 1 - 8 * i downto 8 * N_MODULES - 8 - 8 * i),
+                        WEN => hcmos8d_wen(i)
                     );
-            end generate loop_lower_ram;
-            loop_upper_ram : for i in 0 to 11 generate
-                uh : component hcmos8d_sp_0128x08m16
-                    port map(
-                        Q   => hcmos8d_data_out_h(95 - 8 * i downto 88 - 8 * i),
-                        A   => address(6 downto 0),
-                        CEN => hcmos8d_cen_h,
-                        CLK => clock,
-                        D   => hcmos8d_data_in(95 - 8 * i downto 88 - 8 * i),
-                        WEN => hcmos8d_wen
-                    );
-            end generate loop_upper_ram;
-            hcmos8d_wen      <= hcmos8d_inactive when testen = '1' else (not writeEnable);
-            hcmos8d_cen      <= hcmos8d_inactive when testen = '1' else (not chipEnable);
-            hcmos8d_cen_l    <= hcmos8d_cen when (address(7) = '0') else hcmos8d_inactive;
-            hcmos8d_cen_h    <= hcmos8d_cen when (address(7) = '1') else hcmos8d_inactive;
-            hcmos8d_data_out <= hcmos8d_data_out_l when (address(7) = '0') else
-                                hcmos8d_data_out_h;
-            hcmos8d_data_in  <= writeData & writeData & writeData;
-            readData         <= writeData when testen = '1' else
-                                mvote(
-                                    hcmos8d_data_out(95 downto 64),
-                                    hcmos8d_data_out(63 downto 32),
-                                    hcmos8d_data_out(31 downto 0));
+            end generate loop_ram;
+            hcmos8d_address  <= mi.a when testen = '1' else
+                    address;
+            hcmos8d_data_in  <= 
         end block blk_hcmos8d_tech;
 
     end generate use_hcmos8d_tech;
