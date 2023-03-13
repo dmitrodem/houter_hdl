@@ -27,6 +27,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 use work.ftlib.all;
+use work.testlib.all;
 
 entity SpaceWireRouterIPRam32x256 is
     generic(
@@ -39,7 +40,10 @@ entity SpaceWireRouterIPRam32x256 is
         writeEnable : in  std_logic;
         chipEnable  : in  std_logic;
         readData    : out std_logic_vector(31 downto 0);
-        testen      : in  std_logic);
+        testen      : in  std_logic;
+        mi          : in  memdbg_in_t;
+        mo          : out memdbg_out_t
+    );
 end entity SpaceWireRouterIPRam32x256;
 
 architecture behavioral of SpaceWireRouterIPRam32x256 is
@@ -71,31 +75,56 @@ begin
 
     use_hcmos8d_tech : if tech = 1 generate
         blk_hcmos8d_tech : block
-            constant N_MODULES      : integer := 24;
-            signal hcmos8d_active     : std_logic;
-            signal hcmos8d_inactive   : std_logic;
-            signal hcmos8d_address  : std_logic_vector(6 downto 0);
-            signal hcmos8d_data_in  : std_logic_vector(8 * N_MODULES - 1 downto 0);
-            signal hcmos8d_data_out : std_logic_vector(8 * N_MODULES - 1 downto 0);
-            signal hcmos8d_cen      : std_logic_vector(N_MODULES - 1 downto 0);
-            signal hcmos8d_wen      : std_logic_vector(N_MODULES - 1 downto 0);
+            signal hcmos8d_address    : std_logic_vector(6 downto 0);
+            signal hcmos8d_data_in    : std_logic_vector(191 downto 0);
+            signal hcmos8d_data_out   : std_logic_vector(191 downto 0);
+            signal hcmos8d_data_l_out : std_logic_vector(31 downto 0);
+            signal hcmos8d_data_h_out : std_logic_vector(31 downto 0);
+            signal hcmos8d_cen        : std_logic_vector(23 downto 0);
+            signal hcmos8d_wen        : std_logic_vector(23 downto 0);
         begin
-            hcmos8d_active   <= '0';
-            hcmos8d_inactive <= '1';
-            loop_ram : for i in 0 to N_MODULES - 1 generate
+            loop_ram : for i in 0 to 23 generate
                 ul : component hcmos8d_sp_0128x08m16
                     port map(
-                        Q   => hcmos8d_data_out(8 * N_MODULES - 1 - 8 * i downto 8 * N_MODULES - 8 - 8 * i),
+                        Q   => hcmos8d_data_out(191 - 8 * i downto 184 - 8 * i),
                         A   => hcmos8d_address,
                         CEN => hcmos8d_cen(i),
                         CLK => clock,
-                        D   => hcmos8d_data_in(8 * N_MODULES - 1 - 8 * i downto 8 * N_MODULES - 8 - 8 * i),
+                        D   => hcmos8d_data_in(191 - 8 * i downto 184 - 8 * i),
                         WEN => hcmos8d_wen(i)
                     );
+                hcmos8d_data_in(191 - 8 * i downto 184 - 8 * i) <= mi.d when testen = '1' else
+                                                                   writeData(31 - 8 * (i mod 4) downto 24 - 8 * (i mod 4));
+
+                hcmos8d_cen(i) <= mi.cen(i) when testen = '1' else
+                                  (not (chipEnable and (not address(7)))) when (i < 12) else
+                                  (not (chipEnable and (address(7))));
+                hcmos8d_wen(i) <= mi.wen(i) when testen = '1' else
+                                  not writeEnable;
+
+                mo.q(i) <= hcmos8d_data_out(191 - 8 * i downto 184 - 8 * i);
             end generate loop_ram;
-            hcmos8d_address  <= mi.a when testen = '1' else
-                    address;
-            hcmos8d_data_in  <= 
+
+            has_unused_outputs : if N_MODULES > 24 generate
+                unused_outputs : for i in 24 to N_MODULES - 1 generate
+                    mo.q(i) <= (others => '0');
+                end generate unused_outputs;
+            end generate has_unused_outputs;
+
+            hcmos8d_address    <= mi.a when testen = '1' else address(6 downto 0);
+            hcmos8d_data_l_out <= mvote(
+                hcmos8d_data_out(191 downto 160),
+                hcmos8d_data_out(159 downto 128),
+                hcmos8d_data_out(127 downto 96));
+            hcmos8d_data_h_out <= mvote(
+                hcmos8d_data_out(95 downto 64),
+                hcmos8d_data_out(63 downto 32),
+                hcmos8d_data_out(31 downto 0));
+
+            readData <= writeData when testen = '1' else
+                        hcmos8d_data_l_out when address(7) = '0' else
+                        hcmos8d_data_h_out;
+
         end block blk_hcmos8d_tech;
 
     end generate use_hcmos8d_tech;

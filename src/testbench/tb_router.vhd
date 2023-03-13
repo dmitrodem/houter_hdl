@@ -17,6 +17,7 @@ context vunit_lib.vunit_context;
 context vunit_lib.com_context;
 
 use work.spw_actor_pkg.all;
+use work.test_mem_actor_pkg.all;
 
 library osvvm;
 use osvvm.RandomPkg.all;
@@ -83,6 +84,12 @@ architecture behav of tb_router is
   signal spw_so_5     : std_logic := '0';
   -- [[[end]]]
 
+  signal testen            : std_logic;
+  signal test_mem_address  : std_logic_vector(31 downto 0);
+  signal test_mem_data_in  : std_logic_vector(7 downto 0);
+  signal test_mem_cen      : std_logic;
+  signal test_mem_wen      : std_logic;
+  signal test_mem_data_out : std_logic_vector(7 downto 0);
 
 begin  -- architecture behav
   -- [[[cog
@@ -177,6 +184,20 @@ begin  -- architecture behav
     spw_so => spw_so_5);
   -- [[[end]]]
 
+  testmem0: entity work.test_mem_actor
+      generic map(
+          name => "mem0"
+      )
+      port map(
+          clk               => clk_sys,
+          test_mem_address  => test_mem_address,
+          test_mem_data_in  => test_mem_data_in,
+          test_mem_cen      => test_mem_cen,
+          test_mem_wen      => test_mem_wen,
+          test_mem_data_out => test_mem_data_out
+      );
+
+
   router0 : entity work.SpaceWireRouterIP
     generic map (
       clkfreq => RT_SYSCLK_FREQ,
@@ -249,7 +270,12 @@ begin  -- architecture behav
       busMasterUserStrobeIn       => '0',
       busMasterUserRequestIn      => '0',
       busMasterUserAcknowledgeOut => open,
-      testen => '0'
+      testen => testen,
+      test_mem_address => test_mem_address,
+      test_mem_data_in => test_mem_data_in,
+      test_mem_cen => test_mem_cen,
+      test_mem_wen => test_mem_wen,
+      test_mem_data_out => test_mem_data_out
   );
 
   generate_clock : process is
@@ -669,6 +695,7 @@ begin  -- architecture behav
   begin  -- process sim
     test_runner_setup(runner, runner_cfg);
     rnd.InitSeed(rnd'instance_name);
+    testen <= '0';
     while test_suite loop
       if run("Link up test") then
         for i in 0 to 5 loop
@@ -899,6 +926,30 @@ begin  -- architecture behav
           end loop;  -- dst
         end loop;  -- src
 
+      elsif run("Test memory interface") then
+        rst <= '1';
+        testen <= '1';
+        wait for 20*T;
+        rst <= '0';
+        wait for 100*T;
+        msg := new_msg(test_mem_write);
+        push(msg, 16#00000000#);
+        push(msg, 16#ab#);
+        push(msg, 16#cd#);
+        push(msg, 16#12#);
+        push(msg, 16#34#);
+        send(net, find("mem0"), msg);
+        delete(msg);
+        wait for 100*T;
+        msg := new_msg(test_mem_read);
+        push(msg, 16#00000000#);
+        push(msg, 4);
+        send(net, find("mem0"), msg);
+        receive_reply(net, msg, msgr);
+        for i in 0 to 3 loop
+            d8 := std_logic_vector(to_unsigned(pop_integer(msgr), 8));
+            log("Reply is " & hex_image(d8));
+        end loop;
       end if;
     end loop;
     test_runner_cleanup(runner);

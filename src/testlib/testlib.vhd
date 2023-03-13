@@ -2,7 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 
 package testlib is
-    constant N_MODULES : integer := 16;
+    constant N_MODULES : integer := 24;
 
     type memdbg_in_t is record
         a   : std_logic_vector(6 downto 0);

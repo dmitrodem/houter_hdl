@@ -118,7 +118,12 @@ entity SpaceWireRouterIP is
         busMasterUserStrobeIn       : in  std_logic;
         busMasterUserRequestIn      : in  std_logic;
         busMasterUserAcknowledgeOut : out std_logic;
-        testen                      : in  std_logic
+        testen                      : in  std_logic;
+        test_mem_address            : in  std_logic_vector (31 downto 0);
+        test_mem_data_in            : in  std_logic_vector (7 downto 0);
+        test_mem_cen                : in  std_logic;
+        test_mem_wen                : in  std_logic;
+        test_mem_data_out           : out std_logic_vector (7 downto 0)
         );
 end SpaceWireRouterIP;
 
@@ -351,7 +356,8 @@ architecture behavioral of SpaceWireRouterIP is
     signal tmi6, rmi6 : memdbg_in_t;
     signal tmo6, rmo6 : memdbg_out_t;
     -- [[[end]]]
-
+    signal tblmi : memdbg_in_t;
+    signal tblmo : memdbg_out_t;
 begin
 
     oneShotStatusPort1 <= port1LinkStatus (15 downto 8);
@@ -1454,7 +1460,9 @@ begin
             statisticalInformation6     => statisticalInformation6,
             -- [[[end]]]
             statisticalInformationClear => statisticalInformationClear,
-            testen                      => testen
+            testen                      => testen,
+            mi                          => tblmi,
+            mo                          => tblmo
             );
 
 
@@ -1655,22 +1663,352 @@ begin
             autoTimeCodeValue     => autoTimeCodeValue,
             autoTimeCodeCycleTime => autoTimeCodeCycleTime
             );
-    -- [[[cog
-    -- for i in range(1, int(nports)+1):
-    --   print(f"tmi{i}  <= memdbg_in_none;")
-    --   print(f"rmi{i}  <= memdbg_in_none;")
-    -- ]]]
-    tmi1  <= memdbg_in_none;
-    rmi1  <= memdbg_in_none;
-    tmi2  <= memdbg_in_none;
-    rmi2  <= memdbg_in_none;
-    tmi3  <= memdbg_in_none;
-    rmi3  <= memdbg_in_none;
-    tmi4  <= memdbg_in_none;
-    rmi4  <= memdbg_in_none;
-    tmi5  <= memdbg_in_none;
-    rmi5  <= memdbg_in_none;
-    tmi6  <= memdbg_in_none;
-    rmi6  <= memdbg_in_none;
-    -- [[[end]]]
+    assign_test_inputs : process (
+        test_mem_address,
+        test_mem_data_in,
+        test_mem_cen,
+        test_mem_wen,
+        tblmo,
+        tmo1, tmo2, tmo3, tmo4, tmo5, tmo6,
+        rmo1, rmo2, rmo3, rmo4, rmo5, rmo6
+    ) is
+        variable vmi : memdbg_in_t;
+        variable vdataout : std_logic_vector (7 downto 0);
+    begin
+        vmi := memdbg_in_none;
+        vmi.a := test_mem_address(6 downto 0);
+        vmi.d := test_mem_data_in;
+        vdataout := (others => '0');
+        -- [[[cog
+        -- for k in ["t", "r"]:
+        --   for i in range(1, int(nports)+1):
+        --     print(f"{k}mi{i} <= vmi;")
+        -- ]]]
+        tmi1 <= vmi;
+        tmi2 <= vmi;
+        tmi3 <= vmi;
+        tmi4 <= vmi;
+        tmi5 <= vmi;
+        tmi6 <= vmi;
+        rmi1 <= vmi;
+        rmi2 <= vmi;
+        rmi3 <= vmi;
+        rmi4 <= vmi;
+        rmi5 <= vmi;
+        rmi6 <= vmi;
+        -- [[[end]]]
+        tblmi.a <= test_mem_address (6 downto 0);
+        tblmi.d <= test_mem_data_in;
+        case test_mem_address (15 downto 7) is
+            -- [[[cog
+            -- v = 0
+            -- for i in range(0, 24):
+            --   print(f'when "{v:09b}" =>')
+            --   print(f'    tblmi.cen({i}) <= test_mem_cen;')
+            --   print(f'    tblmi.wen({i}) <= test_mem_wen;')
+            --   print(f'    vdataout := tblmo.q({i});')
+            --   v += 1
+            -- for k in ["t", "r"]:
+            --   for i in range(1, int(nports)+1):
+            --     for j in range(0, 4):
+            --       print(f'when "{v:09b}" =>')
+            --       print(f'    {k}mi{i}.cen({j}) <= test_mem_cen;')
+            --       print(f'    {k}mi{i}.wen({j}) <= test_mem_wen;')
+            --       print(f'    vdataout := {k}mo{i}.q({j});')
+            --       v += 1
+            -- ]]]
+            when "000000000" =>
+                tblmi.cen(0) <= test_mem_cen;
+                tblmi.wen(0) <= test_mem_wen;
+                vdataout := tblmo.q(0);
+            when "000000001" =>
+                tblmi.cen(1) <= test_mem_cen;
+                tblmi.wen(1) <= test_mem_wen;
+                vdataout := tblmo.q(1);
+            when "000000010" =>
+                tblmi.cen(2) <= test_mem_cen;
+                tblmi.wen(2) <= test_mem_wen;
+                vdataout := tblmo.q(2);
+            when "000000011" =>
+                tblmi.cen(3) <= test_mem_cen;
+                tblmi.wen(3) <= test_mem_wen;
+                vdataout := tblmo.q(3);
+            when "000000100" =>
+                tblmi.cen(4) <= test_mem_cen;
+                tblmi.wen(4) <= test_mem_wen;
+                vdataout := tblmo.q(4);
+            when "000000101" =>
+                tblmi.cen(5) <= test_mem_cen;
+                tblmi.wen(5) <= test_mem_wen;
+                vdataout := tblmo.q(5);
+            when "000000110" =>
+                tblmi.cen(6) <= test_mem_cen;
+                tblmi.wen(6) <= test_mem_wen;
+                vdataout := tblmo.q(6);
+            when "000000111" =>
+                tblmi.cen(7) <= test_mem_cen;
+                tblmi.wen(7) <= test_mem_wen;
+                vdataout := tblmo.q(7);
+            when "000001000" =>
+                tblmi.cen(8) <= test_mem_cen;
+                tblmi.wen(8) <= test_mem_wen;
+                vdataout := tblmo.q(8);
+            when "000001001" =>
+                tblmi.cen(9) <= test_mem_cen;
+                tblmi.wen(9) <= test_mem_wen;
+                vdataout := tblmo.q(9);
+            when "000001010" =>
+                tblmi.cen(10) <= test_mem_cen;
+                tblmi.wen(10) <= test_mem_wen;
+                vdataout := tblmo.q(10);
+            when "000001011" =>
+                tblmi.cen(11) <= test_mem_cen;
+                tblmi.wen(11) <= test_mem_wen;
+                vdataout := tblmo.q(11);
+            when "000001100" =>
+                tblmi.cen(12) <= test_mem_cen;
+                tblmi.wen(12) <= test_mem_wen;
+                vdataout := tblmo.q(12);
+            when "000001101" =>
+                tblmi.cen(13) <= test_mem_cen;
+                tblmi.wen(13) <= test_mem_wen;
+                vdataout := tblmo.q(13);
+            when "000001110" =>
+                tblmi.cen(14) <= test_mem_cen;
+                tblmi.wen(14) <= test_mem_wen;
+                vdataout := tblmo.q(14);
+            when "000001111" =>
+                tblmi.cen(15) <= test_mem_cen;
+                tblmi.wen(15) <= test_mem_wen;
+                vdataout := tblmo.q(15);
+            when "000010000" =>
+                tblmi.cen(16) <= test_mem_cen;
+                tblmi.wen(16) <= test_mem_wen;
+                vdataout := tblmo.q(16);
+            when "000010001" =>
+                tblmi.cen(17) <= test_mem_cen;
+                tblmi.wen(17) <= test_mem_wen;
+                vdataout := tblmo.q(17);
+            when "000010010" =>
+                tblmi.cen(18) <= test_mem_cen;
+                tblmi.wen(18) <= test_mem_wen;
+                vdataout := tblmo.q(18);
+            when "000010011" =>
+                tblmi.cen(19) <= test_mem_cen;
+                tblmi.wen(19) <= test_mem_wen;
+                vdataout := tblmo.q(19);
+            when "000010100" =>
+                tblmi.cen(20) <= test_mem_cen;
+                tblmi.wen(20) <= test_mem_wen;
+                vdataout := tblmo.q(20);
+            when "000010101" =>
+                tblmi.cen(21) <= test_mem_cen;
+                tblmi.wen(21) <= test_mem_wen;
+                vdataout := tblmo.q(21);
+            when "000010110" =>
+                tblmi.cen(22) <= test_mem_cen;
+                tblmi.wen(22) <= test_mem_wen;
+                vdataout := tblmo.q(22);
+            when "000010111" =>
+                tblmi.cen(23) <= test_mem_cen;
+                tblmi.wen(23) <= test_mem_wen;
+                vdataout := tblmo.q(23);
+            when "000011000" =>
+                tmi1.cen(0) <= test_mem_cen;
+                tmi1.wen(0) <= test_mem_wen;
+                vdataout := tmo1.q(0);
+            when "000011001" =>
+                tmi1.cen(1) <= test_mem_cen;
+                tmi1.wen(1) <= test_mem_wen;
+                vdataout := tmo1.q(1);
+            when "000011010" =>
+                tmi1.cen(2) <= test_mem_cen;
+                tmi1.wen(2) <= test_mem_wen;
+                vdataout := tmo1.q(2);
+            when "000011011" =>
+                tmi1.cen(3) <= test_mem_cen;
+                tmi1.wen(3) <= test_mem_wen;
+                vdataout := tmo1.q(3);
+            when "000011100" =>
+                tmi2.cen(0) <= test_mem_cen;
+                tmi2.wen(0) <= test_mem_wen;
+                vdataout := tmo2.q(0);
+            when "000011101" =>
+                tmi2.cen(1) <= test_mem_cen;
+                tmi2.wen(1) <= test_mem_wen;
+                vdataout := tmo2.q(1);
+            when "000011110" =>
+                tmi2.cen(2) <= test_mem_cen;
+                tmi2.wen(2) <= test_mem_wen;
+                vdataout := tmo2.q(2);
+            when "000011111" =>
+                tmi2.cen(3) <= test_mem_cen;
+                tmi2.wen(3) <= test_mem_wen;
+                vdataout := tmo2.q(3);
+            when "000100000" =>
+                tmi3.cen(0) <= test_mem_cen;
+                tmi3.wen(0) <= test_mem_wen;
+                vdataout := tmo3.q(0);
+            when "000100001" =>
+                tmi3.cen(1) <= test_mem_cen;
+                tmi3.wen(1) <= test_mem_wen;
+                vdataout := tmo3.q(1);
+            when "000100010" =>
+                tmi3.cen(2) <= test_mem_cen;
+                tmi3.wen(2) <= test_mem_wen;
+                vdataout := tmo3.q(2);
+            when "000100011" =>
+                tmi3.cen(3) <= test_mem_cen;
+                tmi3.wen(3) <= test_mem_wen;
+                vdataout := tmo3.q(3);
+            when "000100100" =>
+                tmi4.cen(0) <= test_mem_cen;
+                tmi4.wen(0) <= test_mem_wen;
+                vdataout := tmo4.q(0);
+            when "000100101" =>
+                tmi4.cen(1) <= test_mem_cen;
+                tmi4.wen(1) <= test_mem_wen;
+                vdataout := tmo4.q(1);
+            when "000100110" =>
+                tmi4.cen(2) <= test_mem_cen;
+                tmi4.wen(2) <= test_mem_wen;
+                vdataout := tmo4.q(2);
+            when "000100111" =>
+                tmi4.cen(3) <= test_mem_cen;
+                tmi4.wen(3) <= test_mem_wen;
+                vdataout := tmo4.q(3);
+            when "000101000" =>
+                tmi5.cen(0) <= test_mem_cen;
+                tmi5.wen(0) <= test_mem_wen;
+                vdataout := tmo5.q(0);
+            when "000101001" =>
+                tmi5.cen(1) <= test_mem_cen;
+                tmi5.wen(1) <= test_mem_wen;
+                vdataout := tmo5.q(1);
+            when "000101010" =>
+                tmi5.cen(2) <= test_mem_cen;
+                tmi5.wen(2) <= test_mem_wen;
+                vdataout := tmo5.q(2);
+            when "000101011" =>
+                tmi5.cen(3) <= test_mem_cen;
+                tmi5.wen(3) <= test_mem_wen;
+                vdataout := tmo5.q(3);
+            when "000101100" =>
+                tmi6.cen(0) <= test_mem_cen;
+                tmi6.wen(0) <= test_mem_wen;
+                vdataout := tmo6.q(0);
+            when "000101101" =>
+                tmi6.cen(1) <= test_mem_cen;
+                tmi6.wen(1) <= test_mem_wen;
+                vdataout := tmo6.q(1);
+            when "000101110" =>
+                tmi6.cen(2) <= test_mem_cen;
+                tmi6.wen(2) <= test_mem_wen;
+                vdataout := tmo6.q(2);
+            when "000101111" =>
+                tmi6.cen(3) <= test_mem_cen;
+                tmi6.wen(3) <= test_mem_wen;
+                vdataout := tmo6.q(3);
+            when "000110000" =>
+                rmi1.cen(0) <= test_mem_cen;
+                rmi1.wen(0) <= test_mem_wen;
+                vdataout := rmo1.q(0);
+            when "000110001" =>
+                rmi1.cen(1) <= test_mem_cen;
+                rmi1.wen(1) <= test_mem_wen;
+                vdataout := rmo1.q(1);
+            when "000110010" =>
+                rmi1.cen(2) <= test_mem_cen;
+                rmi1.wen(2) <= test_mem_wen;
+                vdataout := rmo1.q(2);
+            when "000110011" =>
+                rmi1.cen(3) <= test_mem_cen;
+                rmi1.wen(3) <= test_mem_wen;
+                vdataout := rmo1.q(3);
+            when "000110100" =>
+                rmi2.cen(0) <= test_mem_cen;
+                rmi2.wen(0) <= test_mem_wen;
+                vdataout := rmo2.q(0);
+            when "000110101" =>
+                rmi2.cen(1) <= test_mem_cen;
+                rmi2.wen(1) <= test_mem_wen;
+                vdataout := rmo2.q(1);
+            when "000110110" =>
+                rmi2.cen(2) <= test_mem_cen;
+                rmi2.wen(2) <= test_mem_wen;
+                vdataout := rmo2.q(2);
+            when "000110111" =>
+                rmi2.cen(3) <= test_mem_cen;
+                rmi2.wen(3) <= test_mem_wen;
+                vdataout := rmo2.q(3);
+            when "000111000" =>
+                rmi3.cen(0) <= test_mem_cen;
+                rmi3.wen(0) <= test_mem_wen;
+                vdataout := rmo3.q(0);
+            when "000111001" =>
+                rmi3.cen(1) <= test_mem_cen;
+                rmi3.wen(1) <= test_mem_wen;
+                vdataout := rmo3.q(1);
+            when "000111010" =>
+                rmi3.cen(2) <= test_mem_cen;
+                rmi3.wen(2) <= test_mem_wen;
+                vdataout := rmo3.q(2);
+            when "000111011" =>
+                rmi3.cen(3) <= test_mem_cen;
+                rmi3.wen(3) <= test_mem_wen;
+                vdataout := rmo3.q(3);
+            when "000111100" =>
+                rmi4.cen(0) <= test_mem_cen;
+                rmi4.wen(0) <= test_mem_wen;
+                vdataout := rmo4.q(0);
+            when "000111101" =>
+                rmi4.cen(1) <= test_mem_cen;
+                rmi4.wen(1) <= test_mem_wen;
+                vdataout := rmo4.q(1);
+            when "000111110" =>
+                rmi4.cen(2) <= test_mem_cen;
+                rmi4.wen(2) <= test_mem_wen;
+                vdataout := rmo4.q(2);
+            when "000111111" =>
+                rmi4.cen(3) <= test_mem_cen;
+                rmi4.wen(3) <= test_mem_wen;
+                vdataout := rmo4.q(3);
+            when "001000000" =>
+                rmi5.cen(0) <= test_mem_cen;
+                rmi5.wen(0) <= test_mem_wen;
+                vdataout := rmo5.q(0);
+            when "001000001" =>
+                rmi5.cen(1) <= test_mem_cen;
+                rmi5.wen(1) <= test_mem_wen;
+                vdataout := rmo5.q(1);
+            when "001000010" =>
+                rmi5.cen(2) <= test_mem_cen;
+                rmi5.wen(2) <= test_mem_wen;
+                vdataout := rmo5.q(2);
+            when "001000011" =>
+                rmi5.cen(3) <= test_mem_cen;
+                rmi5.wen(3) <= test_mem_wen;
+                vdataout := rmo5.q(3);
+            when "001000100" =>
+                rmi6.cen(0) <= test_mem_cen;
+                rmi6.wen(0) <= test_mem_wen;
+                vdataout := rmo6.q(0);
+            when "001000101" =>
+                rmi6.cen(1) <= test_mem_cen;
+                rmi6.wen(1) <= test_mem_wen;
+                vdataout := rmo6.q(1);
+            when "001000110" =>
+                rmi6.cen(2) <= test_mem_cen;
+                rmi6.wen(2) <= test_mem_wen;
+                vdataout := rmo6.q(2);
+            when "001000111" =>
+                rmi6.cen(3) <= test_mem_cen;
+                rmi6.wen(3) <= test_mem_wen;
+                vdataout := rmo6.q(3);
+            -- [[[end]]]
+            when others => null;
+        end case;
+        test_mem_data_out <= vdataout;
+    end process assign_test_inputs;
+
 end behavioral;

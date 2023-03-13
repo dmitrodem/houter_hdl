@@ -326,9 +326,10 @@ begin
                         AB   => hcmos8d_portb_address,
                         DB   => hcmos8d_portb_data_in(31 - 8 * i downto 24 - 8 * i)
                     );
+                mo.q(i) <= hcmos8d_porta_data_out(31 - 8 * i downto 24 - 8 * i);
             end generate loop_hcmos8d_ram;
-            iReadDataOut         <= writeDataIn when testen = '1' else
-                                    mvote(
+            iReadDataOut          <= writeDataIn when testen = '1' else
+                                     mvote(
                                          hcmos8d_porta_data_out(26 downto 18),
                                          hcmos8d_porta_data_out(17 downto 9),
                                          hcmos8d_porta_data_out(8 downto 0));
@@ -349,7 +350,12 @@ begin
             hcmos8d_portb_cen     <= "1111" when testen = '1' else
                                      (not writeEnable) & (not writeEnable) & (not writeEnable) & (not writeEnable);
             hcmos8d_portb_wen     <= "1111" when testen = '1' else
-                                     "0000";            
+                                     "0000";
+            -- unused outputs
+            unused_outputs : for i in 4 to N_MODULES-1 generate
+                mo.q(i) <= (others => '0');
+            end generate unused_outputs;
+
         end block blk_hcmos8d_ram;
     end generate use_hcmos8d_ram;
 

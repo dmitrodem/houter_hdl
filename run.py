@@ -36,6 +36,8 @@ for f in files:
     spw.add_source_files(ROOT / "spacewire_light" / "trunk" / "rtl" / "vhdl" / f)
 spw.add_source_files(ROOT / "testbench" / "rmap_crc.vhd")
 spw.add_source_files(ROOT / "testbench" / "rmap_pkg.vhd")
+spw.add_source_files(ROOT / "testbench" / "test_mem_actor_pkg.vhd")
+spw.add_source_files(ROOT / "testbench" / "test_mem_actor.vhd")
 spw.add_source_files(ROOT / "testbench" / "spw_actor_pkg.vhd")
 spw.add_source_files(ROOT / "testbench" / "spw_actor.vhd")
 spw.add_source_files(ROOT / "testbench" / "tb_spw_actor.vhd")

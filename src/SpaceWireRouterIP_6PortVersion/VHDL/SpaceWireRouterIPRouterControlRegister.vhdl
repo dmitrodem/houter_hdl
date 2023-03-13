@@ -26,10 +26,10 @@
 -- ]]]
 -- [[[end]]]
 
-library work;
 use work.SpaceWireRouterIPConfigurationPackage.all;
 use work.SpaceWireRouterIPPackage.all;
 use work.SpaceWireCODECIPPackage.all;
+use work.testlib.all;
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -162,7 +162,9 @@ entity SpaceWireRouterIPRouterControlRegister is
         statisticalInformation6     : in  bit32X8Array;
         -- [[[end]]]
         statisticalInformationClear : out std_logic;
-        testen                      : in  std_logic
+        testen                      : in  std_logic;
+        mi                          : in  memdbg_in_t;
+        mo                          : out memdbg_out_t
         );
 end SpaceWireRouterIPRouterControlRegister;
 
@@ -1078,7 +1080,9 @@ begin
             writeData      => writeData,
             readData       => routingTableReadData,
             acknowledge    => routingTableAcknowledge,
-            testen         => testen
+            testen         => testen,
+            mi             => mi,
+            mo             => mo
             );
 --------------------------------------------------------------------------------        
 -- longen link reset signal.

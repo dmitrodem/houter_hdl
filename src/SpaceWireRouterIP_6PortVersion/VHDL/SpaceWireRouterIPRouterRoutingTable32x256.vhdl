@@ -25,6 +25,8 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
+use work.testlib.all;
+
 entity SpaceWireRouterIPRouterRoutingTable32x256 is
     generic (
         tech : integer
@@ -39,7 +41,9 @@ entity SpaceWireRouterIPRouterRoutingTable32x256 is
         writeData      : in  std_logic_vector (31 downto 0);
         readData       : out std_logic_vector (31 downto 0);
         acknowledge    : out std_logic;
-        testen         : in  std_logic
+        testen         : in  std_logic;
+        mi             : in  memdbg_in_t;
+        mo             : out memdbg_out_t
     );
 end SpaceWireRouterIPRouterRoutingTable32x256;
 
@@ -83,7 +87,9 @@ begin
             writeEnable => iWriteEnableRegister,
             chipEnable  => iChipEnableRegister,
             readData    => ramDataOut,
-            testen      => testen
+            testen      => testen,
+            mi          => mi,
+            mo          => mo
         );
 
     readData <= iReadData;
