@@ -37,8 +37,8 @@ entity SpaceWireRouterIP is
     generic (
         clkfreq : real;
         txclkfreq : real;
-        tech : integer;
-        gNumberOfInternalPort : integer := cNumberOfInternalPort
+        tech : integer
+        --gNumberOfInternalPort : integer := cNumberOfInternalPort
     );
     port (
         clock                       : in  std_logic;
@@ -162,30 +162,42 @@ architecture behavioral of SpaceWireRouterIP is
     signal packetDropCount6 : std_logic_vector (15 downto 0);
     -- [[[end]]]
 
-    type portXPortArray is array (gNumberOfInternalPort - 1 downto 0) of std_logic_vector (gNumberOfInternalPort - 1 downto 0);
-    type bit8XPortArray is array (gNumberOfInternalPort - 1 downto 0) of std_logic_vector (7 downto 0);
-    type bit9XPortArray is array (gNumberOfInternalPort - 1 downto 0) of std_logic_vector (8 downto 0);
+    -- [[[cog
+    -- print(f"type portXPortArray is array ({n} - 1 downto 0) of std_logic_vector ({n} - 1 downto 0);")
+    -- print(f"type bit8XPortArray is array ({n} - 1 downto 0) of std_logic_vector (7 downto 0);")
+    -- print(f"type bit9XPortArray is array ({n} - 1 downto 0) of std_logic_vector (8 downto 0);")
+    -- print(f"subtype PortVector_t is std_logic_vector ({n} - 1 downto 0);")
+    --- ]]]
+    type portXPortArray is array (7 - 1 downto 0) of std_logic_vector (7 - 1 downto 0);
+    type bit8XPortArray is array (7 - 1 downto 0) of std_logic_vector (7 downto 0);
+    type bit9XPortArray is array (7 - 1 downto 0) of std_logic_vector (8 downto 0);
+    subtype PortVector_t is std_logic_vector (7 - 1 downto 0);
+    --- [[[end]]]
 
     signal iSelectDestinationPort            : portXPortArray;
     signal iSwitchPortNumber                 : portXPortArray;
 --
-    signal requestOut                        : std_logic_vector (gNumberOfInternalPort - 1 downto 0);
+    signal requestOut                        : PortVector_t;
     signal destinationPort                   : bit8XPortArray;
     signal sorcePortrOut                     : bit8XPortArray;
-    signal granted                           : std_logic_vector (gNumberOfInternalPort - 1 downto 0);
-    signal iReadyIn                          : std_logic_vector (gNumberOfInternalPort - 1 downto 0);
+    signal granted                           : PortVector_t;
+    signal iReadyIn                          : PortVector_t;
     signal dataOut                           : bit9XPortArray;
-    signal strobeOut                         : std_logic_vector (gNumberOfInternalPort - 1 downto 0);
-    signal iRequestIn                        : std_logic_vector (gNumberOfInternalPort - 1 downto 0);
+    signal strobeOut                         : PortVector_t;
+    signal iRequestIn                        : PortVector_t;
     signal iSorcePortIn                      : bit8XPortArray;
     signal iDataIn                           : bit9XPortArray;
-    signal iStrobeIn                         : std_logic_vector (gNumberOfInternalPort - 1 downto 0);
-    signal readyOut                          : std_logic_vector (gNumberOfInternalPort - 1 downto 0);
+    signal iStrobeIn                         : PortVector_t;
+    signal readyOut                          : PortVector_t;
 --
-    signal iTimeOutEEPIn                     : std_logic_vector (gNumberOfInternalPort - 1 downto 0);
-    signal timeOutEEPOut                     : std_logic_vector (gNumberOfInternalPort - 1 downto 0);
+    signal iTimeOutEEPIn                     : PortVector_t;
+    signal timeOutEEPOut                     : PortVector_t;
 --
-    signal routingSwitch                     : std_logic_vector ((gNumberOfInternalPort*gNumberOfInternalPort - 1) downto 0);
+    -- [[[cog
+    -- print(f"signal routingSwitch                     : std_logic_vector (({n}*{n} - 1) downto 0);")
+    -- ]]]
+    signal routingSwitch                     : std_logic_vector ((7*7 - 1) downto 0);
+    -- [[[end]]]
 --
     signal routerTimeCode                    : std_logic_vector (7 downto 0);
     signal transmitTimeCodeEnable            : std_logic_vector (6 downto 0);
@@ -320,12 +332,17 @@ architecture behavioral of SpaceWireRouterIP is
     signal autoTimeCodeValue                 : std_logic_vector(7 downto 0);
     signal autoTimeCodeCycleTime             : std_logic_vector(31 downto 0);
 --
+    -- [[[cog
+    -- for i in range(1, n):
+    --   print(f"signal statisticalInformation{i}           : bit32X8Array;")
+    -- ]]]
     signal statisticalInformation1           : bit32X8Array;
     signal statisticalInformation2           : bit32X8Array;
     signal statisticalInformation3           : bit32X8Array;
     signal statisticalInformation4           : bit32X8Array;
     signal statisticalInformation5           : bit32X8Array;
     signal statisticalInformation6           : bit32X8Array;
+    -- [[[end]]]    
     signal statisticalInformationClear       : std_logic;
 --
     signal dropCouterClear                   : std_logic;
@@ -339,7 +356,7 @@ architecture behavioral of SpaceWireRouterIP is
     signal iLinkUp : std_logic_vector (6 downto 0);
     -- [[[end]]]
     -- [[[cog
-    -- for i in range(1, int(nports)+1):
+    -- for i in range(1, n):
     --   print(f"signal tmi{i}, rmi{i} : memdbg_in_t;")
     --   print(f"signal tmo{i}, rmo{i} : memdbg_out_t;")
     -- ]]]
@@ -445,110 +462,95 @@ begin
     iSwitchPortNumber (6) <= routingSwitch (48 downto 42);
     -- [[[end]]]
 
-    spx : for i in 0 to gNumberOfInternalPort - 1 generate
-    begin
-        iReadyIn (i) <= select7x1(iSelectDestinationPort (i),
-                                  -- [[[cog
-                                  -- a = ",\n".join([f"readyOut ({i})" for i in range(0, int(nports)+1)])
-                                  -- print(f"{a});")
-                                  -- ]]]
-                                  readyOut (0),
-                                  readyOut (1),
-                                  readyOut (2),
-                                  readyOut (3),
-                                  readyOut (4),
-                                  readyOut (5),
-                                  readyOut (6));
-                                  -- [[[end]]]
-    end generate;
+    -- [[[cog
+    -- tmpl = "iReadyIn({i}) <= select{n}x1(iSelectDestinationPort({i}), {s});"
+    -- a = ", ".join([f"readyOut({i})" for i in range(0, n)])
+    -- for i in range(0, n):
+    --   print(tmpl.format(i = i, n = n, s = a))
+    -- ]]]
+    iReadyIn(0) <= select7x1(iSelectDestinationPort(0), readyOut(0), readyOut(1), readyOut(2), readyOut(3), readyOut(4), readyOut(5), readyOut(6));
+    iReadyIn(1) <= select7x1(iSelectDestinationPort(1), readyOut(0), readyOut(1), readyOut(2), readyOut(3), readyOut(4), readyOut(5), readyOut(6));
+    iReadyIn(2) <= select7x1(iSelectDestinationPort(2), readyOut(0), readyOut(1), readyOut(2), readyOut(3), readyOut(4), readyOut(5), readyOut(6));
+    iReadyIn(3) <= select7x1(iSelectDestinationPort(3), readyOut(0), readyOut(1), readyOut(2), readyOut(3), readyOut(4), readyOut(5), readyOut(6));
+    iReadyIn(4) <= select7x1(iSelectDestinationPort(4), readyOut(0), readyOut(1), readyOut(2), readyOut(3), readyOut(4), readyOut(5), readyOut(6));
+    iReadyIn(5) <= select7x1(iSelectDestinationPort(5), readyOut(0), readyOut(1), readyOut(2), readyOut(3), readyOut(4), readyOut(5), readyOut(6));
+    iReadyIn(6) <= select7x1(iSelectDestinationPort(6), readyOut(0), readyOut(1), readyOut(2), readyOut(3), readyOut(4), readyOut(5), readyOut(6));
+    -- [[[end]]]
 
-    spx1 : for i in 0 to gNumberOfInternalPort - 1 generate
-    begin
-        iRequestIn (i) <= select7x1(iSwitchPortNumber (i),
-                                    -- [[[cog
-                                    -- a = ",\n".join([f"requestOut ({i})" for i in range(0, int(nports)+1)])
-                                    -- print(f"{a});")
-                                    -- ]]]
-                                    requestOut (0),
-                                    requestOut (1),
-                                    requestOut (2),
-                                    requestOut (3),
-                                    requestOut (4),
-                                    requestOut (5),
-                                    requestOut (6));
-                                    -- [[[end]]]
-    end generate;
+    -- [[[cog
+    -- tmpl = "iRequestIn({i}) <= select{n}x1(iSwitchPortNumber({i}), {s});"
+    -- a = ", ".join([f"requestOut({i})" for i in range(0, n)])
+    -- for i in range(0, n):
+    --   print(tmpl.format(i = i, n = n, s = a))
+    -- ]]]
+    iRequestIn(0) <= select7x1(iSwitchPortNumber(0), requestOut(0), requestOut(1), requestOut(2), requestOut(3), requestOut(4), requestOut(5), requestOut(6));
+    iRequestIn(1) <= select7x1(iSwitchPortNumber(1), requestOut(0), requestOut(1), requestOut(2), requestOut(3), requestOut(4), requestOut(5), requestOut(6));
+    iRequestIn(2) <= select7x1(iSwitchPortNumber(2), requestOut(0), requestOut(1), requestOut(2), requestOut(3), requestOut(4), requestOut(5), requestOut(6));
+    iRequestIn(3) <= select7x1(iSwitchPortNumber(3), requestOut(0), requestOut(1), requestOut(2), requestOut(3), requestOut(4), requestOut(5), requestOut(6));
+    iRequestIn(4) <= select7x1(iSwitchPortNumber(4), requestOut(0), requestOut(1), requestOut(2), requestOut(3), requestOut(4), requestOut(5), requestOut(6));
+    iRequestIn(5) <= select7x1(iSwitchPortNumber(5), requestOut(0), requestOut(1), requestOut(2), requestOut(3), requestOut(4), requestOut(5), requestOut(6));
+    iRequestIn(6) <= select7x1(iSwitchPortNumber(6), requestOut(0), requestOut(1), requestOut(2), requestOut(3), requestOut(4), requestOut(5), requestOut(6));
+    -- [[[end]]]
 
-    spx2 : for i in 0 to gNumberOfInternalPort - 1 generate
-    begin
-        iSorcePortIn (i) <= select7x1xVector8(iSwitchPortNumber (i),
-                                              -- [[[cog
-                                              -- a = ",\n".join([f"sorcePortrOut ({i})" for i in range(0, int(nports)+1)])
-                                              -- print(f"{a});")
-                                              -- ]]]
-                                              sorcePortrOut (0),
-                                              sorcePortrOut (1),
-                                              sorcePortrOut (2),
-                                              sorcePortrOut (3),
-                                              sorcePortrOut (4),
-                                              sorcePortrOut (5),
-                                              sorcePortrOut (6));
-                                              -- [[[end]]]
-    end generate;
+    -- [[[cog
+    -- tmpl = "iSorcePortIn({i}) <= select{n}x1xVector8(iSwitchPortNumber({i}), {s});"
+    -- a = ", ".join([f"sorcePortrOut({i})" for i in range(0, n)])
+    -- for i in range(0, n):
+    --   print(tmpl.format(i = i, n = n, s = a))
+    -- ]]]
+    iSorcePortIn(0) <= select7x1xVector8(iSwitchPortNumber(0), sorcePortrOut(0), sorcePortrOut(1), sorcePortrOut(2), sorcePortrOut(3), sorcePortrOut(4), sorcePortrOut(5), sorcePortrOut(6));
+    iSorcePortIn(1) <= select7x1xVector8(iSwitchPortNumber(1), sorcePortrOut(0), sorcePortrOut(1), sorcePortrOut(2), sorcePortrOut(3), sorcePortrOut(4), sorcePortrOut(5), sorcePortrOut(6));
+    iSorcePortIn(2) <= select7x1xVector8(iSwitchPortNumber(2), sorcePortrOut(0), sorcePortrOut(1), sorcePortrOut(2), sorcePortrOut(3), sorcePortrOut(4), sorcePortrOut(5), sorcePortrOut(6));
+    iSorcePortIn(3) <= select7x1xVector8(iSwitchPortNumber(3), sorcePortrOut(0), sorcePortrOut(1), sorcePortrOut(2), sorcePortrOut(3), sorcePortrOut(4), sorcePortrOut(5), sorcePortrOut(6));
+    iSorcePortIn(4) <= select7x1xVector8(iSwitchPortNumber(4), sorcePortrOut(0), sorcePortrOut(1), sorcePortrOut(2), sorcePortrOut(3), sorcePortrOut(4), sorcePortrOut(5), sorcePortrOut(6));
+    iSorcePortIn(5) <= select7x1xVector8(iSwitchPortNumber(5), sorcePortrOut(0), sorcePortrOut(1), sorcePortrOut(2), sorcePortrOut(3), sorcePortrOut(4), sorcePortrOut(5), sorcePortrOut(6));
+    iSorcePortIn(6) <= select7x1xVector8(iSwitchPortNumber(6), sorcePortrOut(0), sorcePortrOut(1), sorcePortrOut(2), sorcePortrOut(3), sorcePortrOut(4), sorcePortrOut(5), sorcePortrOut(6));
+    -- [[[end]]]
 
-    spx3 : for i in 0 to gNumberOfInternalPort - 1 generate
-    begin
+    -- [[[cog
+    -- tmpl = "iDataIn({i}) <= select{n}x1xVector9(iSwitchPortNumber({i}), {s});"
+    -- a = ", ".join([f"dataOut({i})" for i in range(0, n)])
+    -- for i in range(0, n):
+    --   print(tmpl.format(i = i, n = n, s = a))
+    -- ]]]
+    iDataIn(0) <= select7x1xVector9(iSwitchPortNumber(0), dataOut(0), dataOut(1), dataOut(2), dataOut(3), dataOut(4), dataOut(5), dataOut(6));
+    iDataIn(1) <= select7x1xVector9(iSwitchPortNumber(1), dataOut(0), dataOut(1), dataOut(2), dataOut(3), dataOut(4), dataOut(5), dataOut(6));
+    iDataIn(2) <= select7x1xVector9(iSwitchPortNumber(2), dataOut(0), dataOut(1), dataOut(2), dataOut(3), dataOut(4), dataOut(5), dataOut(6));
+    iDataIn(3) <= select7x1xVector9(iSwitchPortNumber(3), dataOut(0), dataOut(1), dataOut(2), dataOut(3), dataOut(4), dataOut(5), dataOut(6));
+    iDataIn(4) <= select7x1xVector9(iSwitchPortNumber(4), dataOut(0), dataOut(1), dataOut(2), dataOut(3), dataOut(4), dataOut(5), dataOut(6));
+    iDataIn(5) <= select7x1xVector9(iSwitchPortNumber(5), dataOut(0), dataOut(1), dataOut(2), dataOut(3), dataOut(4), dataOut(5), dataOut(6));
+    iDataIn(6) <= select7x1xVector9(iSwitchPortNumber(6), dataOut(0), dataOut(1), dataOut(2), dataOut(3), dataOut(4), dataOut(5), dataOut(6));
+    -- [[[end]]]
 
-        iDataIn (i) <= select7x1xVector9(iSwitchPortNumber (i),
-                                        -- [[[cog
-                                        -- a = ",\n".join([f"dataOut ({i})" for i in range(0, int(nports)+1)])
-                                        -- print(f"{a});")
-                                        -- ]]]
-                                        dataOut (0),
-                                        dataOut (1),
-                                        dataOut (2),
-                                        dataOut (3),
-                                        dataOut (4),
-                                        dataOut (5),
-                                        dataOut (6));
-                                        -- [[[end]]]
-    end generate;
+    -- [[[cog
+    -- tmpl = "iStrobeIn({i}) <= select{n}x1(iSwitchPortNumber({i}), {s});"
+    -- a = ", ".join([f"strobeOut({i})" for i in range(0, n)])
+    -- for i in range(0, n):
+    --   print(tmpl.format(i = i, n = n, s = a))
+    -- ]]]
+    iStrobeIn(0) <= select7x1(iSwitchPortNumber(0), strobeOut(0), strobeOut(1), strobeOut(2), strobeOut(3), strobeOut(4), strobeOut(5), strobeOut(6));
+    iStrobeIn(1) <= select7x1(iSwitchPortNumber(1), strobeOut(0), strobeOut(1), strobeOut(2), strobeOut(3), strobeOut(4), strobeOut(5), strobeOut(6));
+    iStrobeIn(2) <= select7x1(iSwitchPortNumber(2), strobeOut(0), strobeOut(1), strobeOut(2), strobeOut(3), strobeOut(4), strobeOut(5), strobeOut(6));
+    iStrobeIn(3) <= select7x1(iSwitchPortNumber(3), strobeOut(0), strobeOut(1), strobeOut(2), strobeOut(3), strobeOut(4), strobeOut(5), strobeOut(6));
+    iStrobeIn(4) <= select7x1(iSwitchPortNumber(4), strobeOut(0), strobeOut(1), strobeOut(2), strobeOut(3), strobeOut(4), strobeOut(5), strobeOut(6));
+    iStrobeIn(5) <= select7x1(iSwitchPortNumber(5), strobeOut(0), strobeOut(1), strobeOut(2), strobeOut(3), strobeOut(4), strobeOut(5), strobeOut(6));
+    iStrobeIn(6) <= select7x1(iSwitchPortNumber(6), strobeOut(0), strobeOut(1), strobeOut(2), strobeOut(3), strobeOut(4), strobeOut(5), strobeOut(6));
+    -- [[[end]]]
 
-    spx4 : for i in 0 to gNumberOfInternalPort - 1 generate
-    begin
-
-        iStrobeIn (i) <= select7x1(iSwitchPortNumber (i),
-                                   -- [[[cog
-                                   -- a = ",\n".join([f"strobeOut ({i})" for i in range(0, int(nports)+1)])
-                                   -- print(f"{a});")
-                                   -- ]]]
-                                   strobeOut (0),
-                                   strobeOut (1),
-                                   strobeOut (2),
-                                   strobeOut (3),
-                                   strobeOut (4),
-                                   strobeOut (5),
-                                   strobeOut (6));
-                                   -- [[[end]]]
-    end generate;
-
-    spx5 : for i in 0 to gNumberOfInternalPort - 1 generate
-    begin
-
-        iTimeOutEEPIn (i) <= select7x1(iSwitchPortNumber (i),
-                                       -- [[[cog
-                                       -- a = ",\n".join([f"timeOutEEPOut ({i})" for i in range(0, int(nports)+1)])
-                                       -- print(f"{a});")
-                                       -- ]]]
-                                       timeOutEEPOut (0),
-                                       timeOutEEPOut (1),
-                                       timeOutEEPOut (2),
-                                       timeOutEEPOut (3),
-                                       timeOutEEPOut (4),
-                                       timeOutEEPOut (5),
-                                       timeOutEEPOut (6));
-                                       -- [[[end]]]
-    end generate;
+    -- [[[cog
+    -- tmpl = "iTimeOutEEPIn({i}) <= select{n}x1(iSwitchPortNumber({i}), {s});"
+    -- a = ", ".join([f"timeOutEEPOut({i})" for i in range(0, n)])
+    -- for i in range(0, n):
+    --   print(tmpl.format(i = i, n = n, s = a))
+    -- ]]]
+    iTimeOutEEPIn(0) <= select7x1(iSwitchPortNumber(0), timeOutEEPOut(0), timeOutEEPOut(1), timeOutEEPOut(2), timeOutEEPOut(3), timeOutEEPOut(4), timeOutEEPOut(5), timeOutEEPOut(6));
+    iTimeOutEEPIn(1) <= select7x1(iSwitchPortNumber(1), timeOutEEPOut(0), timeOutEEPOut(1), timeOutEEPOut(2), timeOutEEPOut(3), timeOutEEPOut(4), timeOutEEPOut(5), timeOutEEPOut(6));
+    iTimeOutEEPIn(2) <= select7x1(iSwitchPortNumber(2), timeOutEEPOut(0), timeOutEEPOut(1), timeOutEEPOut(2), timeOutEEPOut(3), timeOutEEPOut(4), timeOutEEPOut(5), timeOutEEPOut(6));
+    iTimeOutEEPIn(3) <= select7x1(iSwitchPortNumber(3), timeOutEEPOut(0), timeOutEEPOut(1), timeOutEEPOut(2), timeOutEEPOut(3), timeOutEEPOut(4), timeOutEEPOut(5), timeOutEEPOut(6));
+    iTimeOutEEPIn(4) <= select7x1(iSwitchPortNumber(4), timeOutEEPOut(0), timeOutEEPOut(1), timeOutEEPOut(2), timeOutEEPOut(3), timeOutEEPOut(4), timeOutEEPOut(5), timeOutEEPOut(6));
+    iTimeOutEEPIn(5) <= select7x1(iSwitchPortNumber(5), timeOutEEPOut(0), timeOutEEPOut(1), timeOutEEPOut(2), timeOutEEPOut(3), timeOutEEPOut(4), timeOutEEPOut(5), timeOutEEPOut(6));
+    iTimeOutEEPIn(6) <= select7x1(iSwitchPortNumber(6), timeOutEEPOut(0), timeOutEEPOut(1), timeOutEEPOut(2), timeOutEEPOut(3), timeOutEEPOut(4), timeOutEEPOut(5), timeOutEEPOut(6));
+    -- [[[end]]]
 
 ----------------------------------------------------------------------
 -- SpaceWirePort LinkUP Signal.
@@ -603,7 +605,7 @@ begin
 -- Internal Configuration Port.
 --------------------------------------------------------------------------------
     port00 : entity work.SpaceWireRouterIPRMAPPort
-        generic map (gPortNumber => x"00", gNumberOfExternalPort => cNumberOfExternalPort)
+        generic map (gPortNumber => 0)
         port map (
             clock                   => clock,
             reset                   => reset,
@@ -655,8 +657,7 @@ begin
     --         clkfreq => clkfreq,
     --         txclkfreq => txclkfreq,
     --         tech => tech,
-    --         gNumberOfInternalPort => x"{i:02x}",
-    --         gNumberOfExternalPort => cNumberOfExternalPort)
+    --         gPortNumber => {i})
     --     port map (
     --         clock                       => clock,
     --         transmitClock               => transmitClock,
@@ -731,8 +732,7 @@ begin
             clkfreq => clkfreq,
             txclkfreq => txclkfreq,
             tech => tech,
-            gNumberOfInternalPort => x"01",
-            gNumberOfExternalPort => cNumberOfExternalPort)
+            gPortNumber => 1)
         port map (
             clock                       => clock,
             transmitClock               => transmitClock,
@@ -804,8 +804,7 @@ begin
             clkfreq => clkfreq,
             txclkfreq => txclkfreq,
             tech => tech,
-            gNumberOfInternalPort => x"02",
-            gNumberOfExternalPort => cNumberOfExternalPort)
+            gPortNumber => 2)
         port map (
             clock                       => clock,
             transmitClock               => transmitClock,
@@ -877,8 +876,7 @@ begin
             clkfreq => clkfreq,
             txclkfreq => txclkfreq,
             tech => tech,
-            gNumberOfInternalPort => x"03",
-            gNumberOfExternalPort => cNumberOfExternalPort)
+            gPortNumber => 3)
         port map (
             clock                       => clock,
             transmitClock               => transmitClock,
@@ -950,8 +948,7 @@ begin
             clkfreq => clkfreq,
             txclkfreq => txclkfreq,
             tech => tech,
-            gNumberOfInternalPort => x"04",
-            gNumberOfExternalPort => cNumberOfExternalPort)
+            gPortNumber => 4)
         port map (
             clock                       => clock,
             transmitClock               => transmitClock,
@@ -1023,8 +1020,7 @@ begin
             clkfreq => clkfreq,
             txclkfreq => txclkfreq,
             tech => tech,
-            gNumberOfInternalPort => x"05",
-            gNumberOfExternalPort => cNumberOfExternalPort)
+            gPortNumber => 5)
         port map (
             clock                       => clock,
             transmitClock               => transmitClock,
@@ -1096,8 +1092,7 @@ begin
             clkfreq => clkfreq,
             txclkfreq => txclkfreq,
             tech => tech,
-            gNumberOfInternalPort => x"06",
-            gNumberOfExternalPort => cNumberOfExternalPort)
+            gPortNumber => 6)
         port map (
             clock                       => clock,
             transmitClock               => transmitClock,

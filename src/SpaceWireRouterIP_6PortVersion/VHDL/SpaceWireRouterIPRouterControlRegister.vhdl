@@ -1090,30 +1090,23 @@ begin
     -- [[[cog
     -- tmpl = """
     -- longPulse{i:02} : entity work.SpaceWireRouterIPLongPulse port map (
-    --     clock => clock, reset => reset, pulseIn => iSoftWareLinkReset{i}, longPulseOut => linkReset{i}
-    --     );
+    --     clock => clock, reset => reset, pulseIn => iSoftWareLinkReset{i}, longPulseOut => linkReset{i});
     -- """.strip()
     -- for i in range(1, n):
     --   print(tmpl.format(i = i))
     -- ]]]
     longPulse01 : entity work.SpaceWireRouterIPLongPulse port map (
-        clock => clock, reset => reset, pulseIn => iSoftWareLinkReset1, longPulseOut => linkReset1
-        );
+        clock => clock, reset => reset, pulseIn => iSoftWareLinkReset1, longPulseOut => linkReset1);
     longPulse02 : entity work.SpaceWireRouterIPLongPulse port map (
-        clock => clock, reset => reset, pulseIn => iSoftWareLinkReset2, longPulseOut => linkReset2
-        );
+        clock => clock, reset => reset, pulseIn => iSoftWareLinkReset2, longPulseOut => linkReset2);
     longPulse03 : entity work.SpaceWireRouterIPLongPulse port map (
-        clock => clock, reset => reset, pulseIn => iSoftWareLinkReset3, longPulseOut => linkReset3
-        );
+        clock => clock, reset => reset, pulseIn => iSoftWareLinkReset3, longPulseOut => linkReset3);
     longPulse04 : entity work.SpaceWireRouterIPLongPulse port map (
-        clock => clock, reset => reset, pulseIn => iSoftWareLinkReset4, longPulseOut => linkReset4
-        );
+        clock => clock, reset => reset, pulseIn => iSoftWareLinkReset4, longPulseOut => linkReset4);
     longPulse05 : entity work.SpaceWireRouterIPLongPulse port map (
-        clock => clock, reset => reset, pulseIn => iSoftWareLinkReset5, longPulseOut => linkReset5
-        );
+        clock => clock, reset => reset, pulseIn => iSoftWareLinkReset5, longPulseOut => linkReset5);
     longPulse06 : entity work.SpaceWireRouterIPLongPulse port map (
-        clock => clock, reset => reset, pulseIn => iSoftWareLinkReset6, longPulseOut => linkReset6
-        );
+        clock => clock, reset => reset, pulseIn => iSoftWareLinkReset6, longPulseOut => linkReset6);
     -- [[[end]]]
 
     -- [[[cog

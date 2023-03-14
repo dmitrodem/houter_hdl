@@ -33,7 +33,7 @@ architecture behav of tb_router is
 
   constant RT_SYSCLK_FREQ : real := 50.0e6;
   constant RT_TXCLK_FREQ  : real := 100.0e6;
-  constant RT_RXCLK_FREQ  : real := 166.6e6;
+  constant RT_RXCLK_FREQ  : real := 200.0e6;
 
   constant T : time := (1.0/sysfreq) * (1.0e3 ms);
 

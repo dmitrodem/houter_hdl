@@ -32,8 +32,7 @@ use ieee.numeric_std.all;
 
 entity SpaceWireRouterIPRMAPPort is
     generic (
-        gPortNumber           : std_logic_vector (7 downto 0);
-        gNumberOfExternalPort : std_logic_vector (7 downto 0));
+        gPortNumber : integer);
     port (
         clock                   : in  std_logic;
         reset                   : in  std_logic;
@@ -133,7 +132,7 @@ begin
     busMasterRequestOut   <= busMasterCycleOut;
     busMasterOriginalPort <= destinationPort;
     destinationPortOut    <= destinationPort;
-    sorcePortOut          <= gPortNumber;
+    sorcePortOut          <= std_logic_vector(to_unsigned(gPortNumber, 8));
     
     
 end behavioral;

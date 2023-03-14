@@ -24,28 +24,28 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use work.SpaceWireRouterIPPackage."+";
+use ieee.numeric_std.all;
 
 entity SpaceWireRouterIPLongPulse is
-    port (
+    port(
         clock        : in  std_logic;
         reset        : in  std_logic;
         pulseIn      : in  std_logic;
         longPulseOut : out std_logic
-        );
+    );
 end SpaceWireRouterIPLongPulse;
 
 architecture behavioral of SpaceWireRouterIPLongPulse is
 
-    signal iClockCount   : std_logic_vector (7 downto 0);
+    signal iClockCount   : unsigned(7 downto 0);
     signal iLongPulseOut : std_logic;
 
 begin
 
-----------------------------------------------------------------------
--- Convert synchronized One Shot Pulse into LongPulse.
-----------------------------------------------------------------------
-    process (clock, reset)
+    ----------------------------------------------------------------------
+    -- Convert synchronized One Shot Pulse into LongPulse.
+    ----------------------------------------------------------------------
+    process(clock, reset)
     begin
         if (reset = '1') then
             iClockCount   <= (others => '0');

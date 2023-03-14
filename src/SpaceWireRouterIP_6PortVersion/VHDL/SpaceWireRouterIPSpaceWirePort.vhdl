@@ -28,6 +28,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 use work.SpaceWireCODECIPPackage.all;
 use work.testlib.all;
@@ -37,8 +38,8 @@ entity SpaceWireRouterIPSpaceWirePort is
         clkfreq : real;
         txclkfreq : real;
         tech : integer;
-        gNumberOfInternalPort : std_logic_vector (7 downto 0);
-        gNumberOfExternalPort : std_logic_vector (7 downto 0));
+        gPortNumber : integer
+        );
     port (
         -- Clock & Reset.
         clock                       : in  std_logic;
@@ -112,7 +113,13 @@ end SpaceWireRouterIPSpaceWirePort;
 
 
 architecture behavioral of SpaceWireRouterIPSpaceWirePort is
-
+    
+    -- [[[cog
+    -- print(f'constant gNumberOfExternalPort : std_logic_vector (7 downto 0) := "{n-1:08b}"; -- {n-1}')
+    -- ]]]
+    constant gNumberOfExternalPort : std_logic_vector (7 downto 0) := "00000110"; -- 6
+    -- [[[end]]]
+    
     signal spaceWireReset           : std_logic;
 --
     signal iTransmitFIFOWriteEnable : std_logic;
@@ -168,7 +175,7 @@ begin
 
     packetDropped <= iPacketDropped;
 
-    sourcePorOut    <= gNumberOfInternalPort;
+    sourcePorOut    <= std_logic_vector(to_unsigned(gPortNumber, 8));
     spaceWireReset  <= reset or linkReset;
     timeCodeOut     <= controlFlagsOut & timeOut;
     iControlFlagsIn <= timeCodeIn (7 downto 6);

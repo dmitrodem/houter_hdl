@@ -30,8 +30,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.SpaceWireRouterIPPackage."+";
-
 entity SpaceWireRouterIPCreditCount is
     port (
         clock                       : in  std_logic;
@@ -46,7 +44,7 @@ end SpaceWireRouterIPCreditCount;
 
 architecture behavioral of SpaceWireRouterIPCreditCount is
 
-    signal iTransmitClockCounter        : std_logic_vector (3 downto 0);
+    signal iTransmitClockCounter        : unsigned (3 downto 0);
     signal iDataLatchEnable             : std_logic;
     signal iCreditCountLatched          : std_logic_vector (5 downto 0);
     signal iOutstndingCountLatched      : std_logic_vector (5 downto 0);
@@ -71,7 +69,7 @@ begin
             iCreditCountLatched     <= (others => '0');
             iOutstndingCountLatched <= (others => '0');
         elsif (transmitClock'event and transmitClock = '1') then
-            if (iTransmitClockCounter = "0000") then
+            if (iTransmitClockCounter = 0) then
                 iDataLatchEnable        <= '1';
                 iCreditCountLatched     <= creditCount;
                 iOutstndingCountLatched <= outstndingCount;

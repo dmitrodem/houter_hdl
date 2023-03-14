@@ -26,7 +26,6 @@
 -- ]]]
 -- [[[end]]]
 
-library work;
 use work.SpaceWireRouterIPPackage.all;
 
 library ieee;
@@ -107,8 +106,7 @@ architecture behavioral of SpaceWireRouterIPRMAPDecoder is
         receiveCRCStateIdle,
         receiveCRCStateRead0,
         receiveCRCStateRead1,
-        receiveCRCStateRead2,
-        receiveCRCStateRead3
+        receiveCRCStateRead2
         );
     signal receiveCRCState : receiveCRCStateMachine;
     
