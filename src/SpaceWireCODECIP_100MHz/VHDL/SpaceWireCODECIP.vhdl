@@ -188,7 +188,6 @@ begin
   transmitReadyPulse : entity work.SpaceWireCODECIPSynchronizeOnePulse
     port map (
       clock             => clock,
-      asynchronousClock => transmitClock,
       reset             => reset,
       asynchronousIn    => iTransmitBusy,
       synchronizedOut   => transmitBusySynchronized

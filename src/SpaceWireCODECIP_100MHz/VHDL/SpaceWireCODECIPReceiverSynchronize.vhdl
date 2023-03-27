@@ -27,15 +27,15 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity SpaceWireCODECIPReceiverSynchronize is
-    generic (
+    generic(
         gDisconnectCountValue : integer
-        );
-    port (
+    );
+    port(
         spaceWireStrobeIn       : in  std_logic;
         spaceWireDataIn         : in  std_logic;
-        receiveDataOut          : out std_logic_vector (8 downto 0);
+        receiveDataOut          : out std_logic_vector(8 downto 0);
         receiveDataValidOut     : out std_logic;
-        receiveTimeCodeOut      : out std_logic_vector (7 downto 0);
+        receiveTimeCodeOut      : out std_logic_vector(7 downto 0);
         receiveTimeCodeValidOut : out std_logic;
         receiveNCharacterOut    : out std_logic;
         receiveFCTOut           : out std_logic;
@@ -51,157 +51,172 @@ entity SpaceWireCODECIPReceiverSynchronize is
         receiveFIFOWriteEnable  : out std_logic;
         enableReceive           : in  std_logic;
         receiveClock            : in  std_logic
-        );
+    );
 end SpaceWireCODECIPReceiverSynchronize;
 
 architecture RTL of SpaceWireCODECIPReceiverSynchronize is
 
-    signal iDataRegister           : std_logic_vector(7 downto 0);
-    signal iParity                 : std_logic;
-    signal iESCFlag                : std_logic;
-    signal iSpaceWireSynchronize   : std_logic_vector(1 downto 0);
-    signal iBitCount               : unsigned (3 downto 0);
-    signal iLinkTimeOutCounter     : unsigned (15 downto 0);
-    signal iDisconnectErrorOut     : std_logic;
-    signal iParityErrorOut         : std_logic;
-    signal iEscapeErrorOut         : std_logic;
-    signal iCommandFlag, iDataFlag : std_logic;
-
     type spaceWireStateMachine is (
-        spaceWireIdel,
-        spaceWireOff,
-        spaceWireEven0,
-        spaceWireEven1,
-        spaceWireWaitEven,
-        spaceWireOdd0,
-        spaceWireOdd1,
-        spaceWireWaitOdd
-        );
+        ST_IDLE,
+        ST_OFF,
+        ST_EVEN0,
+        ST_EVEN1,
+        ST_EVEN_WAIT,
+        ST_ODD0,
+        ST_ODD1,
+        ST_ODD_WAIT
+    );
 
-    signal spaceWireState : spaceWireStateMachine;
+    type registers is record
+        strobe_data          : std_logic_vector(1 downto 0);
+        state                : spaceWireStateMachine;
+        data_reg             : std_logic_vector(7 downto 0);
+        parity               : std_logic;
+        error_parity         : std_logic;
+        link_timeout_counter : unsigned(15 downto 0);
+        error_disconnect     : std_logic;
+        flag_command         : std_logic;
+        flag_data            : std_logic;
+        bit_count            : unsigned(3 downto 0);
+        timecode             : std_logic_vector(7 downto 0);
+        rx_data              : std_logic_vector(8 downto 0);
+        rx_write             : std_logic;
+        rx_valid             : std_logic;
+        timecode_valid       : std_logic;
+        rx_null              : std_logic;
+        rx_fct               : std_logic;
+        rx_eop               : std_logic;
+        rx_eep               : std_logic;
+        error_esc            : std_logic;
+        flag_esc             : std_logic;
+    end record registers;
 
-    signal iReceiverEOPOut       : std_logic;
-    signal iReceiverEEPOut       : std_logic;
-    signal iReceiverDataValidOut : std_logic;
+    constant RES_registers : registers := (
+        strobe_data          => "00",
+        state                => ST_IDLE,
+        data_reg             => x"00",
+        parity               => '0',
+        error_parity         => '0',
+        link_timeout_counter => (others => '0'),
+        error_disconnect     => '0',
+        flag_command         => '0',
+        flag_data            => '0',
+        bit_count            => (others => '0'),
+        timecode             => (others => '0'),
+        rx_data              => (others => '0'),
+        rx_write             => '0',
+        rx_valid             => '0',
+        timecode_valid       => '0',
+        rx_null              => '0',
+        rx_fct               => '0',
+        rx_eop               => '0',
+        rx_eep               => '0',
+        error_esc            => '0',
+        flag_esc             => '0'
+    );
 
-    signal iReceiveDataOut          : std_logic_vector (8 downto 0) := (others => '0');
-    signal iReceiveTimeCodeOut      : std_logic_vector (7 downto 0);
-    signal iReceiveTimeCodeValidOut : std_logic;
-    signal iReceiveNCharacterOut    : std_logic;
-    signal iReceiveFCTOut           : std_logic;
-    signal iReceiveNullOut          : std_logic;
-    signal iReceiveOffOut           : std_logic;
-    signal iReceiverErrorOut        : std_logic;
-    signal iReceiveFIFOWriteEnable  : std_logic;
+    type registers_vector is array (natural range <>) of registers;
+
+    signal r, rin     : registers;
+    signal sd_p, sd_n : std_logic_vector(1 downto 0);
 
 begin
 
-    receiveDataOut          <= iReceiveDataOut;
-    receiveTimeCodeOut      <= iReceiveTimeCodeOut;
-    receiveTimeCodeValidOut <= iReceiveTimeCodeValidOut;
-    receiveNCharacterOut    <= iReceiveNCharacterOut;
-    receiveFCTOut           <= iReceiveFCTOut;
-    receiveNullOut          <= iReceiveNullOut;
-    receiveOffOut           <= iReceiveOffOut;
-    receiverErrorOut        <= iReceiverErrorOut;
-    receiveFIFOWriteEnable  <= iReceiveFIFOWriteEnable;
-
-----------------------------------------------------------------------
--- ECSS-E-ST-50-12C 8.4.4 Receiver.
-----------------------------------------------------------------------
-
-----------------------------------------------------------------------
--- synchronize DS signal to the receiveClock.
-----------------------------------------------------------------------
-    process (receiveClock)
+    sync_p : process(receiveClock) is
     begin
-        if (receiveClock'event and receiveClock = '1') then
-            iSpaceWireSynchronize <= spaceWireStrobeIn & spaceWireDataIn;
+        if (rising_edge(receiveClock)) then
+            sd_p <= spaceWireStrobeIn & spaceWireDataIn;
         end if;
-    end process;
+    end process sync_p;
 
-----------------------------------------------------------------------
--- Detect a change of the DS signal.
-----------------------------------------------------------------------
-    process (receiveClock, spaceWireReset, iDisconnectErrorOut)
+    sync_n : process(receiveClock) is
     begin
-        if (spaceWireReset = '1' or iDisconnectErrorOut = '1') then
-            spaceWireState <= spaceWireIdel;
-        elsif (receiveClock'event and receiveClock = '1') then
-            if(enableReceive = '1')then
-                if (spaceWireState = spaceWireIdel) then
-                    if (iSpaceWireSynchronize = "00") then
-                        spaceWireState <= spaceWireOff;
+        if (falling_edge(receiveClock)) then
+            sd_n <= spaceWireStrobeIn & spaceWireDataIn;
+        end if;
+    end process sync_n;
+
+    ----------------------------------------------------------------------
+    -- ECSS-E-ST-50-12C 8.4.4 Receiver.
+    ----------------------------------------------------------------------
+
+    comb : process(r, enableReceive, spaceWireDataIn, spaceWireStrobeIn) is        
+        variable v : registers;
+    begin
+        v := r;
+
+        for i in 0 to 1 loop
+
+            -- synchronize DS signal to the receiveClock
+            v.strobe_data := spaceWireStrobeIn & spaceWireDataIn;
+
+            if (enableReceive = '1') then
+                -- Detect a change of the DS signal.
+                if (r.state = ST_IDLE) then
+                    if (r.strobe_data = "00") then
+                        v.state := ST_OFF;
                     end if;
-                elsif (spaceWireState = spaceWireOff) then
-                    if (iSpaceWireSynchronize = "10") then
-                        spaceWireState <= spaceWireOdd0;
+                elsif (r.state = ST_OFF) then
+                    if (r.strobe_data = "10") then
+                        v.state := ST_ODD0;
                     end if;
-                elsif (spaceWireState = spaceWireEven1 or spaceWireState = spaceWireEven0 or spaceWireState = spaceWireWaitOdd) then
-                    if (iSpaceWireSynchronize = "10") then
-                        spaceWireState <= spaceWireOdd0;
-                    elsif (iSpaceWireSynchronize = "01") then
-                        spaceWireState <= spaceWireOdd1;
+                elsif (r.state = ST_EVEN1 or r.state = ST_EVEN0 or r.state = ST_ODD_WAIT) then
+                    if (r.strobe_data = "10") then
+                        v.state := ST_ODD0;
+                    elsif (r.strobe_data = "01") then
+                        v.state := ST_ODD1;
                     else
-                        spaceWireState <= spaceWireWaitOdd;
+                        v.state := ST_ODD_WAIT;
                     end if;
-                elsif (spaceWireState = spaceWireOdd1 or spaceWireState = spaceWireOdd0 or spaceWireState = spaceWireWaitEven) then
-                    if (iSpaceWireSynchronize = "00") then
-                        spaceWireState <= spaceWireEven0;
-                    elsif (iSpaceWireSynchronize = "11") then
-                        spaceWireState <= spaceWireEven1;
+                elsif (r.state = ST_ODD1 or r.state = ST_ODD0 or r.state = ST_EVEN_WAIT) then
+                    if (r.strobe_data = "00") then
+                        v.state := ST_EVEN0;
+                    elsif (r.strobe_data = "11") then
+                        v.state := ST_EVEN1;
                     else
-                        spaceWireState <= spaceWireWaitEven;
+                        v.state := ST_EVEN_WAIT;
                     end if;
                 else
-                    spaceWireState <= spaceWireIdel;
+                    v.state := ST_IDLE;
                 end if;
             end if;
-        end if;
-    end process;
 
-
-    process (receiveClock)
-    begin
-        if (receiveClock'event and receiveClock = '1') then
-            ----------------------------------------------------------------------
             -- Take the data into the shift register on the State transition of spaceWireState.
-            ----------------------------------------------------------------------
-            if(enableReceive = '1')then
-                if (spaceWireState = spaceWireOff) then
-                    iDataRegister <= (others => '0');
-                elsif (spaceWireState = spaceWireOdd1 or spaceWireState = spaceWireEven1) then
-                    iDataRegister <= '1' & iDataRegister(7 downto 1);
-                elsif (spaceWireState = spaceWireOdd0 or spaceWireState = spaceWireEven0) then
-                    iDataRegister <= '0' & iDataRegister(7 downto 1);
+            if (enableReceive = '1') then
+                if (r.state = ST_OFF) then
+                    v.data_reg := RES_registers.data_reg;
+                elsif (r.state = ST_ODD1 or r.state = ST_EVEN1) then
+                    v.data_reg := '1' & r.data_reg(7 downto 1);
+                elsif (r.state = ST_ODD0 or r.state = ST_EVEN0) then
+                    v.data_reg := '0' & r.data_reg(7 downto 1);
                 end if;
             else
-                iDataRegister <= (others => '0');
+                v.data_reg := RES_registers.data_reg;
             end if;
 
             ----------------------------------------------------------------------
             -- ECSS-E-ST-50-12C 7.4 Parity for error detection.
             -- Odd Parity.
             ----------------------------------------------------------------------
-            if(enableReceive = '1' and iEscapeErrorOut = '0' and iDisconnectErrorOut = '0')then
-                if (spaceWireState = spaceWireOff) then
-                    iParity <= '0';
-                elsif (iBitCount = 0 and spaceWireState = spaceWireEven1) then
-                    if (iParity = '1') then
-                        iParityErrorOut <= '1';
-                        iParity         <= '0';
+            if (enableReceive = '1' and r.error_esc = '0' and r.error_disconnect = '0') then
+                if (r.state = ST_OFF) then
+                    v.parity := '0';
+                elsif (r.bit_count = 0 and r.state = ST_EVEN1) then
+                    if (r.parity = '1') then
+                        v.error_parity := '1';
+                        v.parity       := '0';
                     end if;
-                elsif (iBitCount = 0 and spaceWireState = spaceWireEven0) then
-                    if iParity = '0' then
-                        iParityErrorOut <= '1';
+                elsif (r.bit_count = 0 and r.state = ST_EVEN0) then
+                    if r.parity = '0' then
+                        v.error_parity := '1';
                     else
-                        iParity <= '0';
+                        v.parity := '0';
                     end if;
-                elsif (spaceWireState = spaceWireOdd1 or spaceWireState = spaceWireEven1) then
-                    iParity <= not iParity;
+                elsif (r.state = ST_ODD1 or r.state = ST_EVEN1) then
+                    v.parity := not r.parity;
                 end if;
             else
-                iParityErrorOut <= '0';
+                v.error_parity := '0';
             end if;
 
             ----------------------------------------------------------------------
@@ -210,58 +225,63 @@ begin
             -- when the length of time since the last transition on
             -- the D or S lines was longer than 850 ns nominal.
             ----------------------------------------------------------------------
-            if(enableReceive = '1' and iEscapeErrorOut = '0' and iParityErrorOut = '0')then
-                if (spaceWireState = spaceWireWaitOdd or spaceWireState = spaceWireWaitEven) then
-                    if (iLinkTimeOutCounter < gDisconnectCountValue) then
-                        iLinkTimeOutCounter <= iLinkTimeOutCounter + 1;
+            if (enableReceive = '1' and r.error_esc = '0' and r.error_parity = '0') then
+                if (r.state = ST_ODD_WAIT or r.state = ST_EVEN_WAIT) then
+                    if (r.link_timeout_counter < gDisconnectCountValue) then
+                        v.link_timeout_counter := r.link_timeout_counter + 1;
                     else
-                        iDisconnectErrorOut <= '1';
+                        v.error_disconnect := '1';
                     end if;
-                elsif (spaceWireState = spaceWireIdel) then
-                    iLinkTimeOutCounter <= (others => '0');
-
-                elsif (spaceWireState = spaceWireOdd1 or spaceWireState = spaceWireEven1 or spaceWireState = spaceWireOdd0 or spaceWireState = spaceWireEven0) then
-                    iLinkTimeOutCounter <= (others => '0');
+                elsif (r.state = ST_IDLE) then
+                    v.link_timeout_counter := RES_registers.link_timeout_counter;
+                elsif (r.state = ST_ODD1 or r.state = ST_EVEN1 or r.state = ST_ODD0 or r.state = ST_EVEN0) then
+                    v.link_timeout_counter := RES_registers.link_timeout_counter;
                 end if;
             else
-                iDisconnectErrorOut <= '0';
-                iLinkTimeOutCounter <= (others => '0');
+                v.error_disconnect     := RES_registers.error_disconnect;
+                v.link_timeout_counter := RES_registers.link_timeout_counter;
             end if;
+
             ----------------------------------------------------------------------
             -- ECSS-E-ST-50-12C 4.4 Character level
             -- ECSS-E-ST-50-12C 7.2 Data characters
             -- Discriminate the data character or the  the control character by the Data
             -- Control Flag.
             ----------------------------------------------------------------------
-            if(enableReceive = '1')then
-                if (spaceWireState = spaceWireIdel) then
-                    iCommandFlag <= '0'; iDataFlag <= '0';
-                elsif (iBitCount = 0 and spaceWireState = spaceWireEven0) then
-                    iCommandFlag <= '0'; iDataFlag <= '1';
-                elsif (iBitCount = 0 and spaceWireState = spaceWireEven1) then
-                    iCommandFlag <= '1'; iDataFlag <= '0';
+            if (enableReceive = '1') then
+                if (r.state = ST_IDLE) then
+                    v.flag_command := RES_registers.flag_command;
+                    v.flag_data    := RES_registers.flag_data;
+                elsif (r.bit_count = 0 and r.state = ST_EVEN0) then
+                    v.flag_command := '0';
+                    v.flag_data    := '1';
+                elsif (r.bit_count = 0 and r.state = ST_EVEN1) then
+                    v.flag_command := '1';
+                    v.flag_data    := '0';
                 end if;
             else
-                iCommandFlag <= '0'; iDataFlag <= '0';
+                v.flag_command := RES_registers.flag_command;
+                v.flag_data    := RES_registers.flag_data;
             end if;
+
             ----------------------------------------------------------------------
             -- Increment bit of character corresponding by state transition of
             -- spaceWireState.
             ----------------------------------------------------------------------
-            if(enableReceive = '1' and iEscapeErrorOut = '0' and iDisconnectErrorOut = '0')then
-                if (spaceWireState = spaceWireIdel or spaceWireState = spaceWireOff) then
-                    iBitCount <= X"0";
-                elsif (spaceWireState = spaceWireEven1 or spaceWireState = spaceWireEven0) then
-                    if (iBitCount = 1 and iCommandFlag = '1') then
-                        iBitCount <= X"0";
-                    elsif (iBitCount = 4 and iCommandFlag = '0') then
-                        iBitCount <= X"0";
+            if (enableReceive = '1' and r.error_esc = '0' and r.error_disconnect = '0') then
+                if (r.state = ST_IDLE or r.state = ST_OFF) then
+                    v.bit_count := (others => '0');
+                elsif (r.state = ST_EVEN1 or r.state = ST_EVEN0) then
+                    if (r.bit_count = 1 and r.flag_command = '1') then
+                        v.bit_count := (others => '0');
+                    elsif (r.bit_count = 4 and r.flag_command = '0') then
+                        v.bit_count := (others => '0');
                     else
-                        iBitCount <= iBitCount + 1;
+                        v.bit_count := r.bit_count + 1;
                     end if;
                 end if;
             else
-                iBitCount <= X"0";
+                v.bit_count := RES_registers.bit_count;
             end if;
 
             ----------------------------------------------------------------------
@@ -269,31 +289,31 @@ begin
             -- Discriminate  Data character, Control code and Time corde, and write to
             -- Receive buffer
             ----------------------------------------------------------------------
-            if(enableReceive = '1')then
-                if (iBitCount = 0 and (spaceWireState = spaceWireOdd0 or spaceWireState = spaceWireOdd1)) then
-                    if (iDataFlag = '1') then
-                        if (iESCFlag = '1') then
+            if (enableReceive = '1') then
+                if (r.bit_count = 0 and (r.state = ST_ODD0 or r.state = ST_ODD1)) then
+                    if (r.flag_data = '1') then
+                        if (r.flag_esc = '1') then
                             --Time Code Receive.
-                            iReceiveTimeCodeOut <= iDataRegister;
+                            v.timecode := r.data_reg;
                         else
                             --Data Receive.
-                            iReceiveDataOut         <= '0' & iDataRegister;
-                            iReceiveFIFOWriteEnable <= '1';
+                            v.rx_data  := '0' & r.data_reg;
+                            v.rx_write := '1';
                         end if;
-                    elsif (iCommandFlag = '1') then
-                                                if (iDataRegister (7 downto 6) = "10") then     --EOP
-                                                        iReceiveDataOut <= '1' & "00000000";
-                                                elsif (iDataRegister (7 downto 6) = "01") then  --EEP
-                                                        iReceiveDataOut <= '1' & "00000001";
-                                                end if;
+                    elsif (r.flag_command = '1') then
+                        if (r.data_reg(7 downto 6) = "10") then --EOP
+                            v.rx_data := '1' & x"00";
+                        elsif (r.data_reg(7 downto 6) = "01") then --EEP
+                            v.rx_data := '1' & x"01";
+                        end if;
 
-                        if ((iESCFlag /= '1') and (iDataRegister (7 downto 6) = "10" or iDataRegister (7 downto 6) = "01")) then
+                        if ((r.flag_esc /= '1') and (r.data_reg(7 downto 6) = "10" or r.data_reg(7 downto 6) = "01")) then
                             --EOP EEP Receive.
-                            iReceiveFIFOWriteEnable <= '1';
+                            v.rx_write := '1';
                         end if;
                     end if;
                 else
-                    iReceiveFIFOWriteEnable <= '0';
+                    v.rx_write := '0';
                 end if;
             end if;
 
@@ -302,42 +322,41 @@ begin
             -- ECSS-E-ST-50-12C 8.5.3.7.4 Escape error.
             -- Receive DataCharacter, ControlCode and TimeCode.
             ----------------------------------------------------------------------
-            if(enableReceive = '1' and iDisconnectErrorOut = '0' and iParityErrorOut = '0')then
-                if (iBitCount = 0 and (spaceWireState = spaceWireOdd0 or spaceWireState = spaceWireOdd1)) then
-                    if (iCommandFlag = '1') then
-                        case iDataRegister(7 downto 6) is
-
+            if (enableReceive = '1' and r.error_disconnect = '0' and r.error_parity = '0') then
+                if (r.bit_count = 0 and (r.state = ST_ODD0 or r.state = ST_ODD1)) then
+                    if (r.flag_command = '1') then
+                        case r.data_reg(7 downto 6) is
                             ----------------------------------------------------------------------
                             -- ECSS-E-ST-50-12C 8.5.3.2 gotNULL.
                             -- ECSS-E-ST-50-12C 8.5.3.3 gotFCT.
                             ----------------------------------------------------------------------
-                            when "00" =>  -- FCT Receive or Null Receive.
-                                if (iESCFlag = '1') then
-                                    iReceiveNullOut <= '1';
-                                    iESCFlag        <= '0';
+                            when "00" => -- FCT Receive or Null Receive.
+                                if (r.flag_esc = '1') then
+                                    v.rx_null  := '1';
+                                    v.flag_esc := '0';
                                 else
-                                    iReceiveFCTOut <= '1';
+                                    v.rx_fct := '1';
                                 end if;
 
-                            when "11" =>  -- ESC Receive.
-                                if (iESCFlag = '1') then
-                                    iEscapeErrorOut <= '1';
+                            when "11" => -- ESC Receive.
+                                if (r.flag_esc = '1') then
+                                    v.error_esc := '1';
                                 else
-                                    iESCFlag <= '1';
+                                    v.flag_esc := '1';
                                 end if;
 
-                            when "10" =>  -- EOP Receive.
-                                if (iESCFlag = '1') then
-                                    iEscapeErrorOut <= '1';
+                            when "10" => -- EOP Receive.
+                                if (r.flag_esc = '1') then
+                                    v.error_esc := '1';
                                 else
-                                    iReceiverEOPOut <= '1';
+                                    v.rx_eop := '1';
                                 end if;
 
-                            when "01" =>  -- EEP Receive.
-                                if (iESCFlag = '1') then
-                                    iEscapeErrorOut <= '1';
+                            when "01" => -- EEP Receive.
+                                if (r.flag_esc = '1') then
+                                    v.error_esc := '1';
                                 else
-                                    iReceiverEEPOut <= '1';
+                                    v.rx_eep := '1';
                                 end if;
                             when others => null;
                         end case;
@@ -346,59 +365,76 @@ begin
                     -- ECSS-E-ST-50-12C 8.5.3.5 gotTime-Code.
                     -- ECSS-E-ST-50-12C 8.5.3.4 gotN-Char.
                     ----------------------------------------------------------------------
-                    elsif (iDataFlag = '1') then
-                        if (iESCFlag = '1') then  --TimeCode_Receive.
-                            iReceiveTimeCodeValidOut <= '1';
-                            iESCFlag                 <= '0';
-                        else                      --N-Char_Receive.
-                            iReceiverDataValidOut <= '1';
+                    elsif (r.flag_data = '1') then
+                        if (r.flag_esc = '1') then -- TimeCode_Receive.
+                            v.timecode_valid := '1';
+                            v.flag_esc       := '0';
+                        else            --N-Char_Receive.
+                            v.rx_valid := '1';
                         end if;
                     end if;
 
                 ----------------------------------------------------------------------
                 -- Clear the previous Receive flag before receiving data.
                 ----------------------------------------------------------------------
-                elsif (iBitCount = 1 and (spaceWireState = spaceWireOdd0 or spaceWireState = spaceWireOdd1)) then
-                    iReceiverDataValidOut    <= '0';
-                    iReceiveTimeCodeValidOut <= '0';
-                    iReceiveNullOut          <= '0';
-                    iReceiveFCTOut           <= '0';
-                    iReceiverEOPOut          <= '0';
-                    iReceiverEEPOut          <= '0';
-                elsif spaceWireState = spaceWireIdel then
-                    iReceiverDataValidOut    <= '0';
-                    iReceiveTimeCodeValidOut <= '0';
-                    iReceiveNullOut          <= '0';
-                    iReceiveFCTOut           <= '0';
-                    iReceiverEOPOut          <= '0';
-                    iReceiverEEPOut          <= '0';
-                    iEscapeErrorOut          <= '0';
-                    iESCFlag                 <= '0';
+                elsif (r.bit_count = 1 and (r.state = ST_ODD0 or r.state = ST_ODD1)) then
+                    v.rx_valid       := '0';
+                    v.timecode_valid := '0';
+                    v.rx_null        := '0';
+                    v.rx_fct         := '0';
+                    v.rx_eop         := '0';
+                    v.rx_eep         := '0';
+                elsif r.state = ST_IDLE then
+                    v.rx_valid       := '0';
+                    v.timecode_valid := '0';
+                    v.rx_null        := '0';
+                    v.rx_fct         := '0';
+                    v.rx_eop         := '0';
+                    v.rx_eep         := '0';
+                    v.error_esc      := '0';
+                    v.flag_esc       := '0';
                 end if;
-
             else
-                iReceiverDataValidOut    <= '0';
-                iReceiveTimeCodeValidOut <= '0';
-                iReceiveNullOut          <= '0';
-                iReceiveFCTOut           <= '0';
-                iReceiverEOPOut          <= '0';
-                iReceiverEEPOut          <= '0';
-                iEscapeErrorOut          <= '0';
-                iESCFlag                 <= '0';
+                v.rx_valid       := '0';
+                v.timecode_valid := '0';
+                v.rx_null        := '0';
+                v.rx_fct         := '0';
+                v.rx_eop         := '0';
+                v.rx_eep         := '0';
+                v.error_esc      := '0';
+                v.flag_esc       := '0';
             end if;
+
+            if (r.error_disconnect = '1') then
+                v.state := RES_registers.state;
+            end if;
+        end loop;
+        rin <= v;
+    end process comb;
+
+    seq : process(receiveClock, spaceWireReset) is
+    begin
+        if (spaceWireReset = '1') then
+            r <= RES_registers;
+        elsif rising_edge(receiveClock) then
+            r <= rin;
         end if;
-    end process;
+    end process seq;
 
-
-    iReceiveOffOut        <= '1' when spaceWireState = spaceWireOff                                                 else '0';
-    iReceiverErrorOut     <= '1' when iDisconnectErrorOut = '1' or iParityErrorOut = '1' or iEscapeErrorOut = '1'   else '0';
-    iReceiveNCharacterOut <= '1' when iReceiverEOPOut = '1' or iReceiverEEPOut = '1' or iReceiverDataValidOut = '1' else '0';
-    receiveDataValidOut   <= iReceiverDataValidOut;
-    receiveEOPOut         <= iReceiverEOPOut;
-    receiveEEPOut         <= iReceiverEEPOut;
-    parityErrorOut        <= iParityErrorOut;
-    escapeErrorOut        <= iEscapeErrorOut;
-    disconnectErrorOut    <= iDisconnectErrorOut;
-
+    receiveDataOut          <= r.rx_data;
+    receiveTimeCodeOut      <= r.timecode;
+    receiveTimeCodeValidOut <= r.timecode_valid;
+    receiveNCharacterOut    <= (r.rx_eop or r.rx_eep or r.rx_valid);
+    receiveFCTOut           <= r.rx_fct;
+    receiveNullOut          <= r.rx_null;
+    receiveOffOut           <= '1' when r.state = ST_OFF else '0';
+    receiverErrorOut        <= (r.error_disconnect or r.error_parity or r.error_esc);
+    receiveFIFOWriteEnable  <= r.rx_write;
+    receiveDataValidOut     <= r.rx_valid;
+    receiveEOPOut           <= r.rx_eop;
+    receiveEEPOut           <= r.rx_eep;
+    parityErrorOut          <= r.error_parity;
+    escapeErrorOut          <= r.error_esc;
+    disconnectErrorOut      <= r.error_disconnect;
 
 end RTL;

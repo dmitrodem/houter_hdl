@@ -28,7 +28,6 @@ use ieee.std_logic_1164.all;
 entity SpaceWireCODECIPSynchronizeOnePulse is
     port (
         clock             : in  std_logic;
-        asynchronousClock : in  std_logic;
         reset             : in  std_logic;
         asynchronousIn    : in  std_logic;
         synchronizedOut   : out std_logic
@@ -78,7 +77,7 @@ begin
 ----------------------------------------------------------------------
 -- Output Clock synchronized One_Shot_Pulse and clear signal.
 ----------------------------------------------------------------------
-    process (clock, reset, iSynchronousRegister)
+    process (clock, reset)
     begin
         if (reset = '1') then
             iSynchronizedOut  <= '0';

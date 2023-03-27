@@ -83,7 +83,7 @@ begin
 ----------------------------------------------------------------------
 -- After 12.8us.
 ----------------------------------------------------------------------
-    controlTimer128 : process (clock, reset, timer12p8usStart, timer6p4usReset)
+    controlTimer128 : process (clock, reset, timer6p4usReset)
     begin
         if (reset = '1' or timer6p4usReset = '1') then
             iTimerState12p8us <= '0';

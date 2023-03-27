@@ -33,8 +33,6 @@ entity SpaceWireCODECIPStatisticalInformationCount is
         clock                       : in  std_logic;
         reset                       : in  std_logic;
         statisticalInformationClear : in  std_logic;
-        transmitClock               : in  std_logic;
-        receiveClock                : in  std_logic;
 --
         receiveEEPAsynchronous      : in  std_logic;
         receiveEOPAsynchronous      : in  std_logic;
@@ -185,7 +183,6 @@ begin
     receiveEEPPulse : entity work.SpaceWireCODECIPSynchronizeOnePulse
         port map (
             clock             => clock,
-            asynchronousClock => receiveClock,
             reset             => reset,
             asynchronousIn    => receiveEEPAsynchronous,
             synchronizedOut   => iReceiveEEPSynchronize
@@ -194,7 +191,6 @@ begin
     receiveEOPPulse : entity work.SpaceWireCODECIPSynchronizeOnePulse
         port map (
             clock             => clock,
-            asynchronousClock => receiveClock,
             reset             => reset,
             asynchronousIn    => receiveEOPAsynchronous,
             synchronizedOut   => iReceiveEOPSynchronize
@@ -203,7 +199,6 @@ begin
     receiveBytePulse : entity work.SpaceWireCODECIPSynchronizeOnePulse
         port map (
             clock             => clock,
-            asynchronousClock => receiveClock,
             reset             => reset,
             asynchronousIn    => receiveByteAsynchronous,
             synchronizedOut   => iReceiveByteSynchronize
@@ -212,7 +207,6 @@ begin
     transmitEEPPulse : entity work.SpaceWireCODECIPSynchronizeOnePulse
         port map (
             clock             => clock,
-            asynchronousClock => transmitClock,
             reset             => reset,
             asynchronousIn    => transmitEEPAsynchronous,
             synchronizedOut   => iTransmitEEPSynchronize
@@ -221,7 +215,6 @@ begin
     transmitEOPPulse : entity work.SpaceWireCODECIPSynchronizeOnePulse
         port map (
             clock             => clock,
-            asynchronousClock => transmitClock,
             reset             => reset,
             asynchronousIn    => transmitEOPAsynchronous,
             synchronizedOut   => iTransmitEOPSynchronize
@@ -230,7 +223,6 @@ begin
     transmitBytePulse : entity work.SpaceWireCODECIPSynchronizeOnePulse
         port map (
             clock             => clock,
-            asynchronousClock => transmitClock,
             reset             => reset,
             asynchronousIn    => transmitByteAsynchronous,
             synchronizedOut   => iTransmitByteSynchronize

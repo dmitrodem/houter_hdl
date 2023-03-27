@@ -27,22 +27,20 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity SpaceWireCODECIPTransmitter is
-    generic (
+    generic(
         gInitializeTransmitClockDivideValue : integer
-        );
+    );
 
-    port (
+    port(
         transmitClock            : in  std_logic;
-        clock                    : in  std_logic;
-        receiveClock             : in  std_logic;
         reset                    : in  std_logic;
         spaceWireDataOut         : out std_logic;
         spaceWireStrobeOut       : out std_logic;
         tickIn                   : in  std_logic;
-        timeIn                   : in  std_logic_vector (5 downto 0);
-        controlFlagsIn           : in  std_logic_vector (1 downto 0);
+        timeIn                   : in  std_logic_vector(5 downto 0);
+        controlFlagsIn           : in  std_logic_vector(1 downto 0);
         transmitDataEnable       : in  std_logic;
-        transmitData             : in  std_logic_vector (7 downto 0);
+        transmitData             : in  std_logic_vector(7 downto 0);
         transmitDataControlFlag  : in  std_logic;
         transmitReady            : out std_logic;
         enableTransmit           : in  std_logic;
@@ -55,13 +53,13 @@ entity SpaceWireCODECIPTransmitter is
         receiveFIFOCount         : in  std_logic_vector(5 downto 0);
         creditError              : out std_logic;
         transmitClockDivide      : in  std_logic_vector(5 downto 0);
-        creditCountOut           : out std_logic_vector (5 downto 0);
-        outstandingCountOut      : out std_logic_vector (5 downto 0);
+        creditCountOut           : out std_logic_vector(5 downto 0);
+        outstandingCountOut      : out std_logic_vector(5 downto 0);
         spaceWireResetOut        : in  std_logic;
         transmitEEPAsynchronous  : out std_logic;
         TransmitEOPAsynchronous  : out std_logic;
         TransmitByteAsynchronous : out std_logic
-        );
+    );
 end SpaceWireCODECIPTransmitter;
 
 architecture Behavioral of SpaceWireCODECIPTransmitter is
@@ -71,11 +69,11 @@ architecture Behavioral of SpaceWireCODECIPTransmitter is
         transmitStateParity,
         transmitStateControl,
         transmitStateData
-        );
+    );
 
     signal transmitState : transmitStateMachine;
 
-    subtype clkdiv_t is unsigned (5 downto 0);
+    subtype clkdiv_t is unsigned(5 downto 0);
 
     signal iDivideCount                    : clkdiv_t;
     signal iDivideState                    : std_logic;
@@ -87,7 +85,7 @@ architecture Behavioral of SpaceWireCODECIPTransmitter is
     signal iSendStart                      : std_logic;
     signal iSendDone                       : std_logic;
     signal iSendData                       : std_logic_vector(8 downto 0);
-    signal iSendCount                      : unsigned (3 downto 0);
+    signal iSendCount                      : unsigned(3 downto 0);
     signal transmitDataEnableSynchronized  : std_logic;
     signal iDecrementCredit                : std_logic;
     signal iTransmitFCTStart               : std_logic;
@@ -97,21 +95,21 @@ architecture Behavioral of SpaceWireCODECIPTransmitter is
     signal iTransmitTimeCodeDone           : std_logic;
     signal iTransmitTimeCodeState          : std_logic;
     signal gotNCharacterSynchronized       : std_logic;
-    signal iGotNCharacterSynchronizedDelay : std_logic_vector (9 downto 0);
-    signal iOutstandingCount               : unsigned (5 downto 0);
-    signal iReceiveFIFOCountBuffer0        : unsigned (5 downto 0);
-    signal iReceiveFIFOCountBuffer1        : unsigned (5 downto 0);
-    signal iReceiveFIFOCountBuffer         : unsigned (5 downto 0);
+    signal iGotNCharacterSynchronizedDelay : std_logic_vector(9 downto 0);
+    signal iOutstandingCount               : unsigned(5 downto 0);
+    signal iReceiveFIFOCountBuffer0        : unsigned(5 downto 0);
+    signal iReceiveFIFOCountBuffer1        : unsigned(5 downto 0);
+    signal iReceiveFIFOCountBuffer         : unsigned(5 downto 0);
     signal iTransmitFCTState               : std_logic;
-    signal iTransmitDataBuffer             : std_logic_vector (7 downto 0);
+    signal iTransmitDataBuffer             : std_logic_vector(7 downto 0);
     signal iTransmitDataControlFlagBuffer  : std_logic;
     signal gotFCTSynchronized              : std_logic;
-    signal iTransmitCreditCount            : unsigned (6 downto 0);
+    signal iTransmitCreditCount            : unsigned(6 downto 0);
     signal iCreditErrorNCharactorOverFlow  : std_logic;
     signal iCreditErrorFCTOverFlow         : std_logic;
     signal iTransmitReady                  : std_logic;
     signal iCreditError                    : std_logic;
-    signal iTimeInBuffer                   : std_logic_vector (5 downto 0);
+    signal iTimeInBuffer                   : std_logic_vector(5 downto 0);
     signal iFirstNullSend                  : std_logic;
     signal iResetIn                        : std_logic;
     signal iClockDivideRegister            : clkdiv_t;
@@ -120,14 +118,11 @@ architecture Behavioral of SpaceWireCODECIPTransmitter is
     signal iTransmitByteAsynchronous       : std_logic;
     signal iCreditOverFlow                 : std_logic;
 
-
 begin
 
     -- pragma translate_off
-    assert
-      to_integer(to_unsigned(gInitializeTransmitClockDivideValue, clkdiv_t'length)) =
-      gInitializeTransmitClockDivideValue
-      report "Increase clock divider width" severity failure;
+    assert to_integer(to_unsigned(gInitializeTransmitClockDivideValue, clkdiv_t'length)) = gInitializeTransmitClockDivideValue
+    report "Increase clock divider width" severity failure;
     -- pragma translate_on
 
     iResetIn                 <= reset or spaceWireResetOut;
@@ -135,58 +130,50 @@ begin
     TransmitEOPAsynchronous  <= iTransmitEOPAsynchronous;
     TransmitByteAsynchronous <= iTransmitByteAsynchronous;
 
-
     transmitDataEnablePulse : entity work.SpaceWireCODECIPSynchronizeOnePulse
-        port map (
-            clock             => transmitClock,
-            asynchronousClock => clock,
-            reset             => iResetIn,
-            asynchronousIn    => transmitDataEnable,
-            synchronizedOut   => transmitDataEnableSynchronized
-            );
+        port map(
+            clock           => transmitClock,
+            reset           => iResetIn,
+            asynchronousIn  => transmitDataEnable,
+            synchronizedOut => transmitDataEnableSynchronized
+        );
 
     tickInPulse : entity work.SpaceWireCODECIPSynchronizeOnePulse
-        port map (
-            clock             => transmitClock,
-            asynchronousClock => clock,
-            reset             => iResetIn,
-            asynchronousIn    => tickIn,
-            synchronizedOut   => tickInSynchronized
-            );
+        port map(
+            clock           => transmitClock,
+            reset           => iResetIn,
+            asynchronousIn  => tickIn,
+            synchronizedOut => tickInSynchronized
+        );
 
     gotFCTPulse : entity work.SpaceWireCODECIPSynchronizeOnePulse
-        port map (
-            clock             => transmitClock,
-            asynchronousClock => receiveClock,
-            reset             => iResetIn,
-            asynchronousIn    => gotFCT,
-            synchronizedOut   => gotFCTSynchronized
-            );
+        port map(
+            clock           => transmitClock,
+            reset           => iResetIn,
+            asynchronousIn  => gotFCT,
+            synchronizedOut => gotFCTSynchronized
+        );
 
     gotNCharacterPulse : entity work.SpaceWireCODECIPSynchronizeOnePulse
-        port map (
-            clock             => transmitClock,
-            asynchronousClock => receiveClock,
-            reset             => iResetIn,
-            asynchronousIn    => gotNCharacter,
-            synchronizedOut   => gotNCharacterSynchronized
-            );
-
+        port map(
+            clock           => transmitClock,
+            reset           => iResetIn,
+            asynchronousIn  => gotNCharacter,
+            synchronizedOut => gotNCharacterSynchronized
+        );
 
     creditError         <= iCreditError;
     iCreditError        <= iCreditErrorNCharactorOverFlow or iCreditErrorFCTOverFlow;
-    creditCountOut      <= std_logic_vector(iTransmitCreditCount (5 downto 0));
+    creditCountOut      <= std_logic_vector(iTransmitCreditCount(5 downto 0));
     outstandingCountOut <= std_logic_vector(iOutstandingCount);
     transmitReady       <= iTransmitReady;
     iTransmitReady      <= '0' when (iSendStart = '1' or iTransmitFCTStart = '1' or iTransmitCreditCount = "0000000") else '1';
     spaceWireDataOut    <= iDataOutRegister;
     spaceWireStrobeOut  <= iStrobeOutRegister;
 
-
-
-----------------------------------------------------------------------
--- Statistical information, Transmit One Shot Pulse(EOP,EEP,1Byte).
-----------------------------------------------------------------------
+    ----------------------------------------------------------------------
+    -- Statistical information, Transmit One Shot Pulse(EOP,EEP,1Byte).
+    ----------------------------------------------------------------------
     process(transmitClock, iResetIn)
     begin
         if (iResetIn = '1') then
@@ -216,14 +203,14 @@ begin
         end if;
     end process;
 
-----------------------------------------------------------------------
--- ECSS-E-ST-50-12C 8.4.2 Transmitter
--- When the TICK_IN signal is asserted the transmitter sends out a Time-Code
--- as soon as the transmitter has finished sending the current character or
--- control code. The value of the Time-Code is the value of the TIME_IN and
--- CONTROL-FLAGS_IN signals at the point in time when TICK_IN is asserted.
-----------------------------------------------------------------------
-    process (transmitClock, iResetIn)
+    ----------------------------------------------------------------------
+    -- ECSS-E-ST-50-12C 8.4.2 Transmitter
+    -- When the TICK_IN signal is asserted the transmitter sends out a Time-Code
+    -- as soon as the transmitter has finished sending the current character or
+    -- control code. The value of the Time-Code is the value of the TIME_IN and
+    -- CONTROL-FLAGS_IN signals at the point in time when TICK_IN is asserted.
+    ----------------------------------------------------------------------
+    process(transmitClock, iResetIn)
     begin
         if (iResetIn = '1') then
             iTransmitTimeCodeState <= '0';
@@ -231,7 +218,7 @@ begin
             iTimeInBuffer          <= (others => '0');
 
         elsif (transmitClock'event and transmitClock = '1') then
-            if(sendTimeCodes = '1')then
+            if (sendTimeCodes = '1') then
                 if (iTransmitTimeCodeState = '0') then
                     if (tickInSynchronized = '1') then
                         iTransmitTimeCodeStart <= '1';
@@ -249,13 +236,13 @@ begin
 
     end process;
 
-----------------------------------------------------------------------
--- ECSS-E-ST-50-12C 8.3 Flow control (normative)
--- Receives an FCT its transmitter increments the credit count by eight.
--- Whenever the transmitter sends an N-Char it decrements the credit count
--- by one.
-----------------------------------------------------------------------
-    process (transmitClock, iResetIn)
+    ----------------------------------------------------------------------
+    -- ECSS-E-ST-50-12C 8.3 Flow control (normative)
+    -- Receives an FCT its transmitter increments the credit count by eight.
+    -- Whenever the transmitter sends an N-Char it decrements the credit count
+    -- by one.
+    ----------------------------------------------------------------------
+    process(transmitClock, iResetIn)
     begin
         if (iResetIn = '1') then
             iTransmitCreditCount <= (others => '0');
@@ -274,12 +261,12 @@ begin
         end if;
     end process;
 
-----------------------------------------------------------------------
--- ECSS-E-ST-50-12C 8.5.3.8 CreditError
--- If an FCT is received when the credit count is at or close to its maximum
--- value (i.e. within eight of the maximum value), the credit count is
--- not incremented and a credit error occurs.
-----------------------------------------------------------------------
+    ----------------------------------------------------------------------
+    -- ECSS-E-ST-50-12C 8.5.3.8 CreditError
+    -- If an FCT is received when the credit count is at or close to its maximum
+    -- value (i.e. within eight of the maximum value), the credit count is
+    -- not incremented and a credit error occurs.
+    ----------------------------------------------------------------------
     process(transmitClock, iResetIn)
     begin
         if (iResetIn = '1') then
@@ -291,40 +278,37 @@ begin
         end if;
     end process;
 
-----------------------------------------------------------------------
--- ECSS-E-ST-50-12C 8.5.3.8 CreditError
--- Synchronized Reset the CreditErrorFCTOverFlow.
-----------------------------------------------------------------------
+    ----------------------------------------------------------------------
+    -- ECSS-E-ST-50-12C 8.5.3.8 CreditError
+    -- Synchronized Reset the CreditErrorFCTOverFlow.
+    ----------------------------------------------------------------------
     process(transmitClock, iResetIn)
     begin
-        if (transmitClock'event and transmitClock = '1') then
-            if (iResetIn = '1') then
-                iCreditErrorFCTOverFlow <= '0';
-            else
-                iCreditErrorFCTOverFlow <= iCreditOverFlow and not iCreditErrorFCTOverFlow;
-            end if;
+        if (iResetIn = '1') then
+            iCreditErrorFCTOverFlow <= '0';
+        elsif (transmitClock'event and transmitClock = '1') then
+            iCreditErrorFCTOverFlow <= iCreditOverFlow and not iCreditErrorFCTOverFlow;
         end if;
     end process;
 
-
-----------------------------------------------------------------------
--- Receive Wait time for subtraction OutstandingCount
--- after adding receiveFIFOCount.
-----------------------------------------------------------------------
-    process (transmitClock, iResetIn)
+    ----------------------------------------------------------------------
+    -- Receive Wait time for subtraction OutstandingCount
+    -- after adding receiveFIFOCount.
+    ----------------------------------------------------------------------
+    process(transmitClock, iResetIn)
     begin
         if (iResetIn = '1') then
             iGotNCharacterSynchronizedDelay <= (others => '0');
         elsif (transmitClock'event and transmitClock = '1') then
-            iGotNCharacterSynchronizedDelay (0)          <= gotNCharacterSynchronized;
-            iGotNCharacterSynchronizedDelay (9 downto 1) <= iGotNCharacterSynchronizedDelay (8 downto 0);
+            iGotNCharacterSynchronizedDelay(0)          <= gotNCharacterSynchronized;
+            iGotNCharacterSynchronizedDelay(9 downto 1) <= iGotNCharacterSynchronizedDelay(8 downto 0);
         end if;
     end process;
 
-----------------------------------------------------------------------
--- Synchronized input signal to transmitClock.
-----------------------------------------------------------------------
-    process (transmitClock, iResetIn)
+    ----------------------------------------------------------------------
+    -- Synchronized input signal to transmitClock.
+    ----------------------------------------------------------------------
+    process(transmitClock, iResetIn)
     begin
         if (iResetIn = '1') then
             iReceiveFIFOCountBuffer0 <= (others => '0');
@@ -341,14 +325,14 @@ begin
         end if;
     end process;
 
-----------------------------------------------------------------------
--- ECSS-E-ST-50-12C 8.3 Flow control (normative)
--- Each time a link interface receives an FCT its transmitter
--- increments the credit count by eight.
--- Whenever the transmitter sends an N-Char it decrements the credit
--- count by one.
-----------------------------------------------------------------------
-    process (transmitClock, iResetIn)
+    ----------------------------------------------------------------------
+    -- ECSS-E-ST-50-12C 8.3 Flow control (normative)
+    -- Each time a link interface receives an FCT its transmitter
+    -- increments the credit count by eight.
+    -- Whenever the transmitter sends an N-Char it decrements the credit
+    -- count by one.
+    ----------------------------------------------------------------------
+    process(transmitClock, iResetIn)
     begin
         if (iResetIn = '1') then
             iOutstandingCount              <= "000000";
@@ -362,12 +346,12 @@ begin
                     iTransmitFCTStart <= '1';
                     iTransmitFCTState <= '1';
                 end if;
-                if (iGotNCharacterSynchronizedDelay (9) = '1') then
+                if (iGotNCharacterSynchronizedDelay(9) = '1') then
                     iOutstandingCount <= iOutstandingCount - 1;
                 end if;
             else
                 if (iTransmitFCTDone = '1') then
-                    if (iGotNCharacterSynchronizedDelay (9) = '1') then
+                    if (iGotNCharacterSynchronizedDelay(9) = '1') then
                         iOutstandingCount <= iOutstandingCount + 7;
                     else
                         iOutstandingCount <= iOutstandingCount + 8;
@@ -375,7 +359,7 @@ begin
                     iTransmitFCTStart <= '0';
                     iTransmitFCTState <= '0';
                 else
-                    if (iGotNCharacterSynchronizedDelay (9) = '1') then
+                    if (iGotNCharacterSynchronizedDelay(9) = '1') then
                         iOutstandingCount <= iOutstandingCount - 1;
                     end if;
                 end if;
@@ -386,7 +370,7 @@ begin
             -- Credit error occurs if data is received when the
             -- host system is not expecting any more data.
             ----------------------------------------------------------------------
-            if (iGotNCharacterSynchronizedDelay (9) = '1' and iOutstandingCount = "000000") then
+            if (iGotNCharacterSynchronizedDelay(9) = '1' and iOutstandingCount = "000000") then
                 iCreditErrorNCharactorOverFlow <= '1';
             else
                 iCreditErrorNCharactorOverFlow <= '0';
@@ -394,11 +378,11 @@ begin
         end if;
     end process;
 
-----------------------------------------------------------------------
--- Instract to start Transmit and load data to buffer after read the data from
--- TransmitFIFO.
-----------------------------------------------------------------------
-    process (transmitClock, iResetIn)
+    ----------------------------------------------------------------------
+    -- Instract to start Transmit and load data to buffer after read the data from
+    -- TransmitFIFO.
+    ----------------------------------------------------------------------
+    process(transmitClock, iResetIn)
     begin
         if (iResetIn = '1') then
             iSendStart                     <= '0';
@@ -416,12 +400,12 @@ begin
         end if;
     end process;
 
-----------------------------------------------------------------------
--- ECSS-E-ST-50-12C 6.6.5 Initial operating data signalling rate
--- After a reset the SpaceWire link transmitter shall initially commence
--- operating at a data signalling rate of (10±1) Mb/s.
-----------------------------------------------------------------------
-    process (transmitClock, reset)
+    ----------------------------------------------------------------------
+    -- ECSS-E-ST-50-12C 6.6.5 Initial operating data signalling rate
+    -- After a reset the SpaceWire link transmitter shall initially commence
+    -- operating at a data signalling rate of (10±1) Mb/s.
+    ----------------------------------------------------------------------
+    process(transmitClock, reset)
     begin
         if (reset = '1') then
             iClockDivideRegister <= to_unsigned(gInitializeTransmitClockDivideValue, clkdiv_t'length);
@@ -434,11 +418,11 @@ begin
         end if;
     end process;
 
-----------------------------------------------------------------------
--- ECSS-E-ST-50-12C 8.4.3 Transmit clock
--- Dividing counter to determine the Transmit signalling rate.
-----------------------------------------------------------------------
-    process (transmitClock, reset)
+    ----------------------------------------------------------------------
+    -- ECSS-E-ST-50-12C 8.4.3 Transmit clock
+    -- Dividing counter to determine the Transmit signalling rate.
+    ----------------------------------------------------------------------
+    process(transmitClock, reset)
     begin
         if (reset = '1') then
             iDivideCount <= (others => '0');
@@ -454,13 +438,13 @@ begin
         end if;
     end process;
 
-----------------------------------------------------------------------
--- ECSS-E-ST-50-12C 8.4.2 Transmitter
--- The data is convoert to serial after stored in shift register, Transmit Tx as
--- DS signal.
--- Generate odd parity and Transmit Null data automatically.
-----------------------------------------------------------------------
-    process (transmitClock, reset)
+    ----------------------------------------------------------------------
+    -- ECSS-E-ST-50-12C 8.4.2 Transmitter
+    -- The data is convoert to serial after stored in shift register, Transmit Tx as
+    -- DS signal.
+    -- Generate odd parity and Transmit Null data automatically.
+    ----------------------------------------------------------------------
+    process(transmitClock, reset)
     begin
         if (reset = '1') then
             iTransmitParity       <= '0';
@@ -476,7 +460,6 @@ begin
             iFirstNullSend        <= '0';
             iSendCount            <= (others => '0');
             iSendData             <= (others => '0');
-
 
         elsif (transmitClock'event and transmitClock = '1') then
             if (iDivideState = '1') then
@@ -509,12 +492,12 @@ begin
                                     iDataOutRegister   <= iTransmitParity;
                                     iStrobeOutRegister <= iStrobeOutRegister;
                                 end if;
-                                iNullSend <= '0';
+                                iNullSend  <= '0';
 
                             elsif (iTimeCodeSend = '1') then
                                 -- send pending TIME of TCODE(ESC+TIME)
-                                iSendData  <= controlFlagsIn & iTimeInBuffer & '0';
-                                iSendCount <= x"8";
+                                iSendData             <= controlFlagsIn & iTimeInBuffer & '0';
+                                iSendCount            <= x"8";
                                 if (iDataOutRegister = (iTransmitParity xor '1')) then
                                     iDataOutRegister   <= iTransmitParity xor '1';
                                     iStrobeOutRegister <= not iStrobeOutRegister;
@@ -527,8 +510,8 @@ begin
 
                             elsif (iTransmitTimeCodeStart = '1') then
                                 -- send ESC of TCODE.
-                                iSendData  <= "000000" & "111";
-                                iSendCount <= x"2";
+                                iSendData     <= "000000" & "111";
+                                iSendCount    <= x"2";
                                 if (iDataOutRegister = iTransmitParity) then
                                     iDataOutRegister   <= iTransmitParity;
                                     iStrobeOutRegister <= not iStrobeOutRegister;
@@ -540,8 +523,8 @@ begin
 
                             elsif (sendFCTs = '1' and iTransmitFCTStart = '1' and iFirstNullSend = '1') then
                                 -- send FCT.
-                                iSendData  <= "000000" & "001";
-                                iSendCount <= x"2";
+                                iSendData        <= "000000" & "001";
+                                iSendCount       <= x"2";
                                 if (iDataOutRegister = iTransmitParity) then
                                     iDataOutRegister   <= iTransmitParity;
                                     iStrobeOutRegister <= not iStrobeOutRegister;
@@ -591,8 +574,8 @@ begin
 
                             elsif (sendNulls = '1') then
                                 -- send ESC of NULL.
-                                iSendData  <= "000000" & "111";
-                                iSendCount <= x"2";
+                                iSendData      <= "000000" & "111";
+                                iSendCount     <= x"2";
                                 if (iDataOutRegister = iTransmitParity) then
                                     iDataOutRegister   <= iTransmitParity;
                                     iStrobeOutRegister <= not iStrobeOutRegister;
@@ -627,9 +610,9 @@ begin
                                 iDataOutRegister   <= iSendData(0);
                                 iStrobeOutRegister <= iStrobeOutRegister;
                             end if;
-                            iSendData       <= '0' & iSendData(8 downto 1);
-                            iTransmitParity <= '0';
-                            transmitState   <= transmitStateData;
+                            iSendData             <= '0' & iSendData(8 downto 1);
+                            iTransmitParity       <= '0';
+                            transmitState         <= transmitStateData;
                         else
                             iDataOutRegister <= '0';
                             transmitState    <= transmitStateStop;
@@ -658,7 +641,7 @@ begin
                             iDataOutRegister <= '0';
                             transmitState    <= transmitStateStop;
                         end if;
-                    --when others => null;
+                        --when others => null;
 
                 end case;
             else

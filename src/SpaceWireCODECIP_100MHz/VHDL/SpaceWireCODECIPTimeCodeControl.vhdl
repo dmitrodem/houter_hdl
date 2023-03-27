@@ -31,7 +31,6 @@ entity SpaceWireCODECIPTimeCodeControl is
     port (
         clock              : in  std_logic;
         reset              : in  std_logic;
-        receiveClock       : in  std_logic;
         gotTimeCode        : in  std_logic;
         receiveTimeCodeOut : in  std_logic_vector(7 downto 0);
         timeOut            : out std_logic_vector(5 downto 0);
@@ -90,7 +89,6 @@ begin
     timeCodePulse : entity work.SpaceWireCODECIPSynchronizeOnePulse
         port map (
             clock             => clock,
-            asynchronousClock => receiveClock,
             reset             => reset,
             asynchronousIn    => gotTimeCode,
             synchronizedOut   => gotTimeCodeSynchronized

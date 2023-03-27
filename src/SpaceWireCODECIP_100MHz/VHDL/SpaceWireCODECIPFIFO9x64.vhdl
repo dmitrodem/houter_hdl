@@ -116,7 +116,7 @@ architecture RTL of SpaceWireCODECIPFIFO9x64 is
     signal iReadDataCount           : unsigned(5 downto 0);
     signal iEmpty                   : std_logic;
 
-    component hcmos8d_dp_0128x08m16
+    component hcmos8d_dp_0128x08m16 -- @suppress "Component declaration is not equal to its matching entity"
         port(
             QA   : out std_logic_vector(7 downto 0);
             CLKA : in  std_logic;
@@ -132,7 +132,6 @@ architecture RTL of SpaceWireCODECIPFIFO9x64 is
             DB   : in  std_logic_vector(7 downto 0)
         );
     end component hcmos8d_dp_0128x08m16;
-    signal qa_unused : std_logic_vector(7 downto 1);
 begin
 
     writeDataCount <= std_logic_vector(iWriteDataCount);
@@ -306,7 +305,6 @@ begin
             signal hcmos8d_porta_wen      : std_logic_vector(3 downto 0);
             signal hcmos8d_portb_address  : std_logic_vector(6 downto 0);
             signal hcmos8d_portb_data_in  : std_logic_vector(31 downto 0);
-            signal hcmos8d_portb_data_out : std_logic_vector(31 downto 0);
             signal hcmos8d_portb_cen      : std_logic_vector(3 downto 0);
             signal hcmos8d_portb_wen      : std_logic_vector(3 downto 0);
         begin
@@ -319,7 +317,7 @@ begin
                         WENA => hcmos8d_porta_wen(i),
                         AA   => hcmos8d_porta_address,
                         DA   => hcmos8d_porta_data_in(31 - 8 * i downto 24 - 8 * i),
-                        QB   => hcmos8d_portb_data_out(31 - 8 * i downto 24 - 8 * i),
+                        QB   => open,
                         CLKB => writeClock,
                         CENB => hcmos8d_portb_cen(i),
                         WENB => hcmos8d_portb_wen(i),

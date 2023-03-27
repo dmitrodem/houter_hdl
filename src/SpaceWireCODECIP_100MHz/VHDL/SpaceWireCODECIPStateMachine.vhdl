@@ -28,7 +28,6 @@ use ieee.std_logic_1164.all;
 entity SpaceWireCODECIPStateMachine is
     port (
         clock                         : in  std_logic;
-        receiveClock                  : in  std_logic;
         reset                         : in  std_logic;
         after12p8us                   : in  std_logic;
         after6p4us                    : in  std_logic;
@@ -77,7 +76,6 @@ architecture Behavioral of SpaceWireCODECIPStateMachine is
     signal gotFCTSynchronize        : std_logic;
     signal gotTimeCodeSynchronize   : std_logic;
     signal gotNCharacterSynchronize : std_logic;
-    signal iAsynchronousError       : std_logic;
     signal receiveErrorsSynchronize : std_logic;
     signal iCharacterSequenceError  : std_logic;
     signal iEnableTransmit          : std_logic;
@@ -93,14 +91,12 @@ architecture Behavioral of SpaceWireCODECIPStateMachine is
     signal iLinkUpTransition        : std_logic;
     signal iLinkDownTransition      : std_logic;
     signal iLinkUpEnable            : std_logic;
-    signal creditSynchronize        : std_logic;
 
 begin
 
     gotNullPulse : entity work.SpaceWireCODECIPSynchronizeOnePulse
         port map (
             clock             => clock,
-            asynchronousClock => receiveClock,
             reset             => reset,
             asynchronousIn    => gotNull,
             synchronizedOut   => gotNullSynchronize
@@ -109,7 +105,6 @@ begin
     gotFCTPulse : entity work.SpaceWireCODECIPSynchronizeOnePulse
         port map (
             clock             => clock,
-            asynchronousClock => receiveClock,
             reset             => reset,
             asynchronousIn    => gotFCT,
             synchronizedOut   => gotFCTSynchronize
@@ -118,7 +113,6 @@ begin
     gotTimeCodePulse : entity work.SpaceWireCODECIPSynchronizeOnePulse
         port map (
             clock             => clock,
-            asynchronousClock => receiveClock,
             reset             => reset,
             asynchronousIn    => gotTimeCode,
             synchronizedOut   => gotTimeCodeSynchronize
@@ -127,18 +121,14 @@ begin
     gotNCharacterPulse : entity work.SpaceWireCODECIPSynchronizeOnePulse
         port map (
             clock             => clock,
-            asynchronousClock => receiveClock,
             reset             => reset,
             asynchronousIn    => gotNCharacter,
             synchronizedOut   => gotNCharacterSynchronize
             );
 
-    iAsynchronousError <= receiveErrorsSynchronize;  --
-
     errorPulse : entity work.SpaceWireCODECIPSynchronizeOnePulse
         port map (
             clock             => clock,
-            asynchronousClock => receiveClock,
             reset             => reset,
             asynchronousIn    => receiveError,
             synchronizedOut   => receiveErrorsSynchronize

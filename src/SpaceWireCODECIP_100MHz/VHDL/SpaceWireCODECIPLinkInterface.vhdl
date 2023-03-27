@@ -158,8 +158,6 @@ begin
             )
         port map (
             transmitClock            => transmitClock,
-            clock                    => clock,
-            receiveClock             => receiveClock,
             reset                    => reset,
             spaceWireDataOut         => spaceWireDataOut,
             spaceWireStrobeOut       => spaceWireStrobeOut,
@@ -194,7 +192,6 @@ begin
     spaceWireStateMachine : entity work.SpaceWireCODECIPStateMachine
         port map (
             clock                         => clock,
-            receiveClock                  => receiveClock,
             reset                         => reset,
             after12p8us                   => after12p8us,
             after6p4us                    => after6p4us,
@@ -245,8 +242,6 @@ begin
             clock                       => clock,
             reset                       => reset,
             statisticalInformationClear => statisticalInformationClear,
-            transmitClock               => transmitClock,
-            receiveClock                => receiveClock,
             receiveEEPAsynchronous      => receiveEEPAsynchronous,
             receiveEOPAsynchronous      => receiveEOPAsynchronous,
             receiveByteAsynchronous     => receiveByteAsynchronous,
@@ -267,7 +262,6 @@ begin
         port map (
             clock              => clock,
             reset              => reset,
-            receiveClock       => receiveClock,
             gotTimeCode        => gotTimeCode,
             receiveTimeCodeOut => receiveTimeCodeOut,
             timeOut            => timeOut,
