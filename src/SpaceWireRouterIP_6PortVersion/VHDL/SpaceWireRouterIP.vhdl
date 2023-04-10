@@ -47,7 +47,7 @@ entity SpaceWireRouterIP is
         reset                       : in  std_logic;
         -- SpaceWire Signals.
         -- [[[cog
-        -- for i in range(1, int(nports)+1):
+        -- for i in range(1, n):
         --   print(f"-- Port{i}.")
         --   print(f"spaceWireDataIn{i}            : in  std_logic;")
         --   print(f"spaceWireStrobeIn{i}          : in  std_logic;")
@@ -87,7 +87,7 @@ entity SpaceWireRouterIP is
         -- [[[end]]]
         --
         -- [[[cog
-        -- for i in range(1, int(nports)+1):
+        -- for i in range(1, n):
         --   print(f"statisticalInformationPort{i} : out bit32X8Array;")
         -- ]]]
         statisticalInformationPort1 : out bit32X8Array;
@@ -99,7 +99,7 @@ entity SpaceWireRouterIP is
         -- [[[end]]]
         --
         -- [[[cog
-        -- for i in range(1, int(nports)+1):
+        -- for i in range(1, n):
         --   print(f"oneShotStatusPort{i}          : out std_logic_vector(7 downto 0);")
         -- ]]]
         oneShotStatusPort1          : out std_logic_vector(7 downto 0);
@@ -132,7 +132,7 @@ architecture behavioral of SpaceWireRouterIP is
 
     -- [[[cog
     -- a = []; b = []; c = []
-    -- for i in range(0, int(nports)+1):
+    -- for i in range(0, n):
     --   a.append(f"signal packetDropped{i}   : std_logic;")
     --   b.append(f"signal timeOutCount{i}    : std_logic_vector (15 downto 0);")
     --   c.append(f"signal packetDropCount{i} : std_logic_vector (15 downto 0);")
@@ -200,10 +200,15 @@ architecture behavioral of SpaceWireRouterIP is
     -- [[[end]]]
 --
     signal routerTimeCode                    : std_logic_vector (7 downto 0);
+
+    -- [[[cog
+    -- print(f"signal transmitTimeCodeEnable            : std_logic_vector ({n-1} downto 0);")
+    -- ]]]
     signal transmitTimeCodeEnable            : std_logic_vector (6 downto 0);
+    -- [[[end]]]
 --
     -- [[[cog
-    -- for i in range(1, int(nports)+1):
+    -- for i in range(1, n):
     --   print(f"signal port{i}TickIn                       : std_logic;")
     --   print(f"signal port{i}TiemCodeIn                   : std_logic_vector (7 downto 0);")
     --   print(f"signal port{i}TickOut                      : std_logic;")
@@ -237,7 +242,7 @@ architecture behavioral of SpaceWireRouterIP is
 --
     -- [[[cog
     -- a = []; b = []; c = [];
-    -- for i in range(1, int(nports)+1):
+    -- for i in range(1, n):
     --   a.append(f"signal port{i}LinkReset                    : std_logic;")
     --   a.append(f"signal port{i}LinkStatus                   : std_logic_vector (15 downto 0);")
     --   a.append(f"signal port{i}ErrorStatus                  : std_logic_vector (7 downto 0);")
@@ -302,17 +307,26 @@ architecture behavioral of SpaceWireRouterIP is
     signal timeOutEnable                     : std_logic;
     signal timeOutCountValue                 : std_logic_vector (19 downto 0);
 --
-    type   bit32X9Array is array (8 downto 0) of std_logic_vector (31 downto 0);
-    type   bit8X9Array is array (8 downto 0) of std_logic_vector (7 downto 0);
-    type   bit4X9Array is array (8 downto 0) of std_logic_vector (3 downto 0);
+    type   bit32X9Array is array (10 downto 0) of std_logic_vector (31 downto 0);
+    type   bit8X9Array is array (10 downto 0) of std_logic_vector (7 downto 0);
+    type   bit4X9Array is array (10 downto 0) of std_logic_vector (3 downto 0);
     signal busMasterAddressOut               : bit32X9Array;
     signal busMasterDataOut                  : bit32X9Array;
     signal busMasterByteEnableOut            : bit4X9Array;
+    -- [[[cog
+    -- print(f"signal busMasterWriteEnableOut           : std_logic_vector ({n-1} downto 0);")
+    -- print(f"signal busMasterRequestOut               : std_logic_vector ({n-1} downto 0);")
+    -- print(f"signal busMasterGranted                  : std_logic_vector ({n} downto 0);")
+    -- print(f"signal busMasterAcknowledgeIn            : std_logic_vector ({n-1} downto 0);")
+    -- print(f"signal busMasterStrobeOut                : std_logic_vector ({n-1} downto 0);")
+    -- ]]]
     signal busMasterWriteEnableOut           : std_logic_vector (6 downto 0);
     signal busMasterRequestOut               : std_logic_vector (6 downto 0);
     signal busMasterGranted                  : std_logic_vector (7 downto 0);
     signal busMasterAcknowledgeIn            : std_logic_vector (6 downto 0);
     signal busMasterStrobeOut                : std_logic_vector (6 downto 0);
+    -- [[[end]]]
+
     signal busMasterOriginalPortOut          : bit8X9Array;
 --
     signal iBusSlaveCycleIn                  : std_logic;
@@ -342,7 +356,7 @@ architecture behavioral of SpaceWireRouterIP is
     signal statisticalInformation4           : bit32X8Array;
     signal statisticalInformation5           : bit32X8Array;
     signal statisticalInformation6           : bit32X8Array;
-    -- [[[end]]]    
+    -- [[[end]]]
     signal statisticalInformationClear       : std_logic;
 --
     signal dropCouterClear                   : std_logic;
@@ -377,12 +391,17 @@ architecture behavioral of SpaceWireRouterIP is
     signal tblmo : memdbg_out_t;
 begin
 
+    -- [[[cog
+    -- for i in range(1, n):
+    --   print(f"oneShotStatusPort{i} <= port{i}LinkStatus (15 downto 8);")
+    -- ]]]
     oneShotStatusPort1 <= port1LinkStatus (15 downto 8);
     oneShotStatusPort2 <= port2LinkStatus (15 downto 8);
     oneShotStatusPort3 <= port3LinkStatus (15 downto 8);
     oneShotStatusPort4 <= port4LinkStatus (15 downto 8);
     oneShotStatusPort5 <= port5LinkStatus (15 downto 8);
     oneShotStatusPort6 <= port6LinkStatus (15 downto 8);
+    -- [[[end]]]
 
 --------------------------------------------------------------------------------
 -- Crossbar Switch.
@@ -393,7 +412,7 @@ begin
             reset              => reset,
             -- [[[cog
             -- a = []; b = []; c = []
-            -- for i in range(0, int(nports) + 1):
+            -- for i in range(0, n):
             --   a.append(f"destinationOfPort{i} => destinationPort ({i})")
             --   b.append(f"requestOfPort{i}     => requestOut ({i})")
             --   c.append(f"grantedToPort{i}     => granted ({i})")
@@ -429,10 +448,9 @@ begin
 -- The destination PortNo regarding the source PortNo.
 ----------------------------------------------------------------------
     -- [[[cog
-    -- n = int(nports) + 1
-    -- for i in range(0, int(nports) + 1):
+    -- for i in range(0, n):
     --   a = []
-    --   for j in range(0, int(nports) + 1):
+    --   for j in range(0, n):
     --     a.append(f"routingSwitch ({n*j + i})")
     --   print(f"iSelectDestinationPort ({i}) <= {' & '.join(a[::-1])};")
     -- ]]]
@@ -449,8 +467,7 @@ begin
 -- The source to the destination PortNo PortNo.
 ----------------------------------------------------------------------
     -- [[[cog
-    -- n = int(nports) + 1
-    -- for i in range(0, int(nports) + 1):
+    -- for i in range(0, n):
     --   print(f"iSwitchPortNumber ({i}) <= routingSwitch ({(n-1) + n*i} downto {n*i});")
     -- ]]]
     iSwitchPortNumber (0) <= routingSwitch (6 downto 0);
@@ -560,7 +577,7 @@ begin
         if(clock'event and clock = '1')then
             iLinkUp (0) <= '1';
             -- [[[cog
-            -- for i in range(1, int(nports) + 1):
+            -- for i in range(1, n):
             --   print(f"if(port{i}LinkStatus (5 downto 0) = \"111111\") then")
             --   print(f"    iLinkUp ({i}) <= '1';")
             --   print(f"else")
@@ -723,7 +740,7 @@ begin
     --         rmo                         => rmo{i}
     --         );
     -- """
-    -- for i in range(1, int(nports) + 1):
+    -- for i in range(1, n):
     --   print(tpl.format(i = i))
     -- ]]]
 
@@ -1173,7 +1190,7 @@ begin
     --     outstndingCountSynchronized => port{i}OutstandingCountSynchronized
     --     );
     -- """
-    -- for i in range(1, int(nports) + 1):
+    -- for i in range(1, n):
     --   print(tmpl.format(i = i))
     -- ]]]
 
@@ -1263,7 +1280,7 @@ begin
             -- dropCount{i}            => packetDropCount{i}
             -- """.strip()
             -- a = []
-            -- for i in range(0, int(nports) + 1):
+            -- for i in range(0, n):
             --   a.append(tmpl.format(i = i))
             -- msg = ",\n".join(a)
             -- print(msg)
@@ -1301,7 +1318,7 @@ begin
 
 
     -- [[[cog
-    -- for i in range(1, int(nports) + 1):
+    -- for i in range(1, n):
     --   print(f"statisticalInformationPort{i} <= statisticalInformation{i};")
     -- ]]]
     statisticalInformationPort1 <= statisticalInformation1;
@@ -1345,7 +1362,7 @@ begin
             -- errorStatus{i}                => port{i}ErrorStatus,
             -- linkReset{i}                  => port{i}LinkReset,
             -- """.rstrip()
-            -- for i in range(1, int(nports) + 1):
+            -- for i in range(1, n):
             --   print(tmpl.format(i = i))
             -- ]]]
 
@@ -1382,7 +1399,7 @@ begin
 --
             -- [[[cog
             -- a = []; b = [];
-            -- for i in range (1, int(nports)+1):
+            -- for i in range (1, n):
             --   a.append(f"creditCount{i}                => port{i}CreditCountSynchronized")
             --   b.append(f"outstandingCount{i}           => port{i}OutstandingCountSynchronized")
             -- s = ",\n".join(a + b)
@@ -1403,7 +1420,7 @@ begin
             -- [[[end]]]
             -- [[[cog
             -- a = []; b = [];
-            -- for i in range (0, int(nports)+1):
+            -- for i in range (0, n):
             --   a.append(f"timeOutCount{i}               => timeOutCount{i}")
             --   b.append(f"dropCount{i}                  => packetDropCount{i}")
             -- s = ",\n".join(a + b)
@@ -1442,7 +1459,7 @@ begin
 --
             -- [[[cog
             -- a = []; b = [];
-            -- for i in range (1, int(nports)+1):
+            -- for i in range (1, n):
             --   a.append(f"statisticalInformation{i}     => statisticalInformation{i}")
             -- s = ",\n".join(a)
             -- print(f"{s},")
@@ -1468,9 +1485,8 @@ begin
         clock               => clock,
         reset               => reset,
         -- [[[cog
-        -- n = int(nports)
-        -- print(f"request({n} downto 0) => busMasterRequestOut,")
-        -- print(f"request({n+1})          => busMasterUserRequestIn,")
+        -- print(f"request({n-1} downto 0) => busMasterRequestOut,")
+        -- print(f"request({n})          => busMasterUserRequestIn,")
         -- ]]]
         request(6 downto 0) => busMasterRequestOut,
         request(7)          => busMasterUserRequestIn,
@@ -1496,7 +1512,7 @@ begin
         elsif (clock'event and clock = '1') then
             if (
               -- [[[cog
-              -- a = " or\n".join([f"busMasterRequestOut({i}) = '1'" for i in range(0, int(nports)+1)])
+              -- a = " or\n".join([f"busMasterRequestOut({i}) = '1'" for i in range(0, n)])
               -- print(f"{a} or")
               -- ]]]
               busMasterRequestOut(0) = '1' or
@@ -1532,7 +1548,7 @@ begin
             --     iBusSlaveDataIn         <= (others => '0');
             --     busMasterAcknowledgeIn  <= ({i}      => iBusSlaveAcknowledgeOut, others => '0');
             -- """.strip()
-            -- for i in range(1, int(nports) + 1):
+            -- for i in range(1, n):
             --   print(tmpl.format(i = i))
             -- ]]]
             elsif (busMasterGranted(1) = '1') then
@@ -1620,7 +1636,7 @@ begin
             -- port{i}TickOut          => port{i}TickOut,
             -- port{i}TimeCodeOut      => port{i}TimeCodeOut,
             -- """.strip()
-            -- for i in range(1, int(nports) + 1):
+            -- for i in range(1, n):
             --   print(tmpl.format(i = i))
             -- ]]]
             port1TimeCodeEnable   => transmitTimeCodeEnable (1),
@@ -1664,8 +1680,15 @@ begin
         test_mem_cen,
         test_mem_wen,
         tblmo,
+        -- [[[cog
+        -- a = [f"tmo{i}" for i in range(1, n)]
+        -- b = [f"rmo{i}" for i in range(1, n)]
+        -- print(", ".join(a) + ",")
+        -- print(", ".join(b))
+        -- ]]]
         tmo1, tmo2, tmo3, tmo4, tmo5, tmo6,
         rmo1, rmo2, rmo3, rmo4, rmo5, rmo6
+        -- [[[end]]]
     ) is
         variable vmi : memdbg_in_t;
         variable vdataout : std_logic_vector (7 downto 0);
@@ -1676,7 +1699,7 @@ begin
         vdataout := (others => '0');
         -- [[[cog
         -- for k in ["t", "r"]:
-        --   for i in range(1, int(nports)+1):
+        --   for i in range(1, n):
         --     print(f"{k}mi{i} <= vmi;")
         -- ]]]
         tmi1 <= vmi;
@@ -1704,7 +1727,7 @@ begin
             --   print(f'    vdataout := tblmo.q({i});')
             --   v += 1
             -- for k in ["t", "r"]:
-            --   for i in range(1, int(nports)+1):
+            --   for i in range(1, n):
             --     for j in range(0, 4):
             --       print(f'when "{v:09b}" =>')
             --       print(f'    {k}mi{i}.cen({j}) <= test_mem_cen;')

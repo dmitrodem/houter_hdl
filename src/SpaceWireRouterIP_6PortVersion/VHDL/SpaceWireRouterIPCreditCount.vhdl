@@ -101,7 +101,6 @@ begin
     synchronizeOnePulse : entity work.SpaceWireCODECIPSynchronizeOnePulse
         port map (
             clock             => clock,
-            asynchronousClock => transmitClock,
             reset             => reset,
             asynchronousIn    => iDataLatchEnable,
             synchronizedOut   => synchronousEnable

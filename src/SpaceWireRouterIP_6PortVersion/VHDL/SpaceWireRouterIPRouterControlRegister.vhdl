@@ -346,7 +346,7 @@ begin
 
     -- [[[cog
     -- tmpl = """
-    -- errorStatus{i:02} : entity work.SpaceWireRouterIPLatchedPulse8 port map (
+    -- xErrorStatus{i:02} : entity work.SpaceWireRouterIPLatchedPulse8 port map (
     --     clock          => clock,
     --     transmitClock  => transmitClock,
     --     receiveClock   => receiveClock,
@@ -359,7 +359,7 @@ begin
     -- for i in range(1, n):
     --   print(tmpl.format(i = i))
     -- ]]]
-    errorStatus01 : entity work.SpaceWireRouterIPLatchedPulse8 port map (
+    xErrorStatus01 : entity work.SpaceWireRouterIPLatchedPulse8 port map (
         clock          => clock,
         transmitClock  => transmitClock,
         receiveClock   => receiveClock,
@@ -368,7 +368,7 @@ begin
         latchedOut     => errorStatusRegister1,
         latchClear     => iErrorStatusClear1
         );
-    errorStatus02 : entity work.SpaceWireRouterIPLatchedPulse8 port map (
+    xErrorStatus02 : entity work.SpaceWireRouterIPLatchedPulse8 port map (
         clock          => clock,
         transmitClock  => transmitClock,
         receiveClock   => receiveClock,
@@ -377,7 +377,7 @@ begin
         latchedOut     => errorStatusRegister2,
         latchClear     => iErrorStatusClear2
         );
-    errorStatus03 : entity work.SpaceWireRouterIPLatchedPulse8 port map (
+    xErrorStatus03 : entity work.SpaceWireRouterIPLatchedPulse8 port map (
         clock          => clock,
         transmitClock  => transmitClock,
         receiveClock   => receiveClock,
@@ -386,7 +386,7 @@ begin
         latchedOut     => errorStatusRegister3,
         latchClear     => iErrorStatusClear3
         );
-    errorStatus04 : entity work.SpaceWireRouterIPLatchedPulse8 port map (
+    xErrorStatus04 : entity work.SpaceWireRouterIPLatchedPulse8 port map (
         clock          => clock,
         transmitClock  => transmitClock,
         receiveClock   => receiveClock,
@@ -395,7 +395,7 @@ begin
         latchedOut     => errorStatusRegister4,
         latchClear     => iErrorStatusClear4
         );
-    errorStatus05 : entity work.SpaceWireRouterIPLatchedPulse8 port map (
+    xErrorStatus05 : entity work.SpaceWireRouterIPLatchedPulse8 port map (
         clock          => clock,
         transmitClock  => transmitClock,
         receiveClock   => receiveClock,
@@ -404,7 +404,7 @@ begin
         latchedOut     => errorStatusRegister5,
         latchClear     => iErrorStatusClear5
         );
-    errorStatus06 : entity work.SpaceWireRouterIPLatchedPulse8 port map (
+    xErrorStatus06 : entity work.SpaceWireRouterIPLatchedPulse8 port map (
         clock          => clock,
         transmitClock  => transmitClock,
         receiveClock   => receiveClock,

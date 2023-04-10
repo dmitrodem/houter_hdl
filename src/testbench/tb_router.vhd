@@ -33,7 +33,7 @@ architecture behav of tb_router is
 
   constant RT_SYSCLK_FREQ : real := 50.0e6;
   constant RT_TXCLK_FREQ  : real := 100.0e6;
-  constant RT_RXCLK_FREQ  : real := 200.0e6;
+  constant RT_RXCLK_FREQ  : real := 100.0e6;
 
   constant T : time := (1.0/sysfreq) * (1.0e3 ms);
 
@@ -677,12 +677,12 @@ begin  -- architecture behav
   variable exclude_index        : integer_vector (0 to 0);
   variable src_link, dst_link   : actor_t;
 
-  type packet_array0_t is array (0 to 5) of integer_array_t;
-  type packet_array_t is array (0 to 5) of packet_array0_t;
+  type packet_array0_t is array (0 to N_PORTS-1) of integer_array_t;
+  type packet_array_t is array (0 to N_PORTS-1) of packet_array0_t;
 
   variable txpackets, rxpackets : packet_array_t;
   variable txpacket, rxpacket   : integer_array_t;
-  variable subscribers          : actor_vec_t (0 to 5);
+  variable subscribers          : actor_vec_t (0 to N_PORTS-1);
 
   impure function hex_image(v : integer_array_t) return string is
     variable l : line;
